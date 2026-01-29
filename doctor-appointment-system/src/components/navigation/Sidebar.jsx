@@ -13,7 +13,6 @@ const linksByRole = {
     { label: "Dashboard", path: "/" },
     { label: "Schedule", path: "/schedule" },
     { label: "Availability", path: "/availability" },
-    { label: "AI Insights", path: "/ai-insights" },
   ],
   admin: [
     { label: "Dashboard", path: "/" },

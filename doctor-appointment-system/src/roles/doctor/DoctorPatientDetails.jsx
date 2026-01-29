@@ -18,6 +18,7 @@ export default function DoctorPatientDetails() {
     const [reports, setReports] = useState([]);
     const [currentAppointment, setCurrentAppointment] = useState(null);
     const [diagnosis, setDiagnosis] = useState("");
+    const [originalDiagnosis, setOriginalDiagnosis] = useState(""); // Track initial/saved value
     const [selectedReport, setSelectedReport] = useState(null);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
 
@@ -147,12 +148,28 @@ export default function DoctorPatientDetails() {
         getLabReports().then(setReports);
 
         apiClient.get('/appointments/').then(res => {
-            const active = res.data.find(a =>
-                (String(a.patient) === String(id) || String(a.patient_id) === String(id)) &&
+            const patientApps = res.data.filter(a =>
+                String(a.patient) === String(id) || String(a.patient_id) === String(id)
+            );
+
+            // 1. Try to find an active appointment
+            let active = patientApps.find(a =>
                 ['pending', 'confirmed', 'in_progress'].includes(a.status)
             );
+
+            // 2. If no active, get the most recent one (history)
+            if (!active && patientApps.length > 0) {
+                active = patientApps.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+            }
+
             setCurrentAppointment(active);
-            if (active?.diagnosis) setDiagnosis(active.diagnosis);
+            if (active?.diagnosis) {
+                setDiagnosis(active.diagnosis);
+                setOriginalDiagnosis(active.diagnosis);
+            } else {
+                setDiagnosis("");
+                setOriginalDiagnosis("");
+            }
         });
     }, [id]);
 
@@ -261,10 +278,18 @@ export default function DoctorPatientDetails() {
             const parsed = typeof currentAppointment.vitals === 'string'
                 ? JSON.parse(currentAppointment.vitals)
                 : currentAppointment.vitals;
-            // Filter out empty values
+            // Filter out empty values and normalize keys
             const filtered = {};
             Object.entries(parsed).forEach(([k, v]) => {
-                if (v && String(v).trim() !== "") filtered[k] = v;
+                if (v && String(v).trim() !== "") {
+                    // Normalize keys to Title Case to prevent duplicates (e.g. "weight" vs "Weight")
+                    const key = k.charAt(0).toUpperCase() + k.slice(1).toLowerCase();
+                    // Special case for BP or abbreviations if needed, but Title Case is safe for now
+                    // actually preserve BP as BP
+                    const finalKey = k === 'BP' ? 'BP' : (k.toLowerCase() === 'bp' ? 'BP' : key);
+
+                    filtered[finalKey] = v;
+                }
             });
             return filtered;
         } catch (e) {
@@ -489,15 +514,35 @@ export default function DoctorPatientDetails() {
                                     placeholder="Enter clinical findings, assessments, and diagnosis here..."
                                     value={diagnosis}
                                     onChange={(e) => setDiagnosis(e.target.value)}
-                                    disabled={currentAppointment?.status === 'completed'}
+                                    disabled={!currentAppointment}
                                 />
-                                {currentAppointment?.status === 'in_progress' && (
-                                    <div className="mt-6 flex justify-end">
+                                <div className="mt-6 flex justify-end gap-3">
+                                    {currentAppointment && diagnosis !== originalDiagnosis && (
+                                        <Button
+                                            onClick={async () => {
+                                                try {
+                                                    await apiClient.patch(`/appointments/${currentAppointment.id}/status/`, {
+                                                        diagnosis: diagnosis
+                                                    });
+                                                    setCurrentAppointment(prev => ({ ...prev, diagnosis: diagnosis }));
+                                                    setOriginalDiagnosis(diagnosis); // Update baseline
+                                                    toast.success("Diagnosis saved successfully");
+                                                } catch (err) {
+                                                    toast.error("Failed to save diagnosis");
+                                                }
+                                            }}
+                                            className="bg-slate-900 text-white border border-slate-900 px-6 py-4 rounded-2xl shadow-lg hover:bg-black hover:-translate-y-1 transition-all animate-bounce-subtle"
+                                        >
+                                            Save Changes
+                                        </Button>
+                                    )}
+
+                                    {currentAppointment?.status === 'in_progress' && (
                                         <Button onClick={() => setShowCompleteModal(true)} className="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-xl hover:-translate-y-1 transition-all">
                                             Finalize & Complete Session
                                         </Button>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
