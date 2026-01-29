@@ -41,5 +41,4 @@ urlpatterns = [
     path("prescriptions/", get_prescriptions),
     path("prescriptions/create/", create_prescription),
     path("prescriptions/<int:pk>/dispense/", dispense_prescription),
-    path("ai-insights/", ai_insights),
 ]
