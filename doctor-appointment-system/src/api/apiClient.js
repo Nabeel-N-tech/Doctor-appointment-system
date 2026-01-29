@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "/api/accounts";
+const BASE_URL = import.meta.env.VITE_API_URL || "https://doctor-appointment-system-yzsw.onrender.com/api/accounts";
+console.log("API BASE URL:", BASE_URL);
 
 async function apiFetch(url, options = {}) {
   const token = localStorage.getItem("access");
