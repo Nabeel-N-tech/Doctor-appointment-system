@@ -25,6 +25,11 @@ class RegisterSerializer(serializers.Serializer):
                     raise serializers.ValidationError({field: ["This field is required for patients."]})
         return data
 
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
     def create(self, validated_data):
         # Extract extra fields
         age_raw = validated_data.get('age', None)
