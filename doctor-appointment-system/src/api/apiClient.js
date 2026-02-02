@@ -5,14 +5,8 @@ if (isDev) {
   // In development, use relative path to trigger Vite proxy
   BASE_URL = "/api/accounts";
 } else {
-  // In production, use the environment variable or fallback to the live server
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && typeof envUrl === "string" && envUrl.trim() !== "") {
-    BASE_URL = `${envUrl}/api/accounts`;
-  } else {
-    // Hardcoded fallback for production to ensure it never hits Vercel relative path
-    BASE_URL = "https://doctor-appointment-system-yzsw.onrender.com/api/accounts";
-  }
+  // Force production URL to ensure connection
+  BASE_URL = "https://doctor-appointment-system-yzsw.onrender.com/api/accounts";
 }
 
 console.log("Environment:", isDev ? "Development" : "Production");
