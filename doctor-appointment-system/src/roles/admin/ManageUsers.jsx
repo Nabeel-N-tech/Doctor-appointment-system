@@ -57,16 +57,18 @@ export default function ManageUsers() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Manage Users</h1>
-          <p className="text-slate-500">View and manage system users.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Manage Users</h1>
+          <p className="text-slate-500 font-medium mt-1">View and manage system users across all roles.</p>
         </div>
-        <div className="flex gap-4 items-center">
-          <span className="bg-slate-100 px-3 py-1 rounded-full text-sm font-medium text-slate-600">
-            {filteredUsers.length} Users Found
+        <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
+          <span className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 shadow-sm">
+            {filteredUsers.length} Active Accounts
           </span>
-          <Button onClick={handleAddUserClick}>+ Add User</Button>
+          <Button onClick={handleAddUserClick} className="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-black shadow-lg hover:-translate-y-0.5 transition-all flex-grow md:flex-grow-0 justify-center">
+            + Add New User
+          </Button>
         </div>
       </div>
 
@@ -139,59 +141,52 @@ export default function ManageUsers() {
 
 function UserCard({ user, navigate }) {
   return (
-    <Card
+    <div
       onClick={() => navigate(`/users/${user.id}`, { state: { user } })}
-      className="flex justify-between items-center hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-teal-200 group p-4"
+      className="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-100 hover:shadow-lg hover:border-slate-200 transition-all cursor-pointer group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
     >
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex items-center gap-4 w-full sm:w-auto">
         <div className={`
-              w-12 h-12 rounded-full flex items-center justify-center text-white font-bold capitalize shrink-0 text-lg shadow-sm
-              ${user.role === 'admin' ? 'bg-purple-500' :
-            user.role === 'doctor' ? 'bg-teal-500' :
-              user.role === 'staff' ? 'bg-orange-500' : 'bg-blue-500'}
+              w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-white font-bold capitalize shrink-0 text-xl shadow-md
+              ${user.role === 'admin' ? 'bg-purple-500 shadow-purple-200' :
+            user.role === 'doctor' ? 'bg-teal-500 shadow-teal-200' :
+              user.role === 'staff' ? 'bg-orange-500 shadow-orange-200' : 'bg-blue-500 shadow-blue-200'}
           `}>
           {user.username[0]}
         </div>
-        <div className="min-w-0">
-          <p className="font-bold text-slate-800 truncate group-hover:text-teal-700 transition-colors text-base">
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-slate-800 text-lg truncate group-hover:text-teal-700 transition-colors">
             {user.role === 'doctor' ? `Dr. ${user.username}` : user.username}
           </p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className={`text-xs font-bold uppercase tracking-wider ${user.role === 'admin' ? 'text-purple-600' :
-              user.role === 'doctor' ? 'text-teal-600' :
-                user.role === 'staff' ? 'text-orange-600' : 'text-blue-600'
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${user.role === 'admin' ? 'text-purple-600 bg-purple-50 border-purple-100' :
+              user.role === 'doctor' ? 'text-teal-600 bg-teal-50 border-teal-100' :
+                user.role === 'staff' ? 'text-orange-600 bg-orange-50 border-orange-100' : 'text-blue-600 bg-blue-50 border-blue-100'
               }`}>
               {user.role}
             </span>
-            {user.role === 'doctor' && user.specialization && (
-              <>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-500">{user.specialization}</span>
-              </>
-            )}
-            <span className="text-slate-300">•</span>
-            <p className="text-xs text-slate-400 truncate">{user.email}</p>
+            <span className="text-slate-300 text-xs hidden sm:inline">•</span>
+            <p className="text-xs text-slate-400 truncate font-medium">{user.email}</p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="hidden sm:block">
-          <span className="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 uppercase tracking-widest">
+      <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-slate-50">
+        <div className="hidden md:block">
+          <span className="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-100 uppercase tracking-widest">
             Active
           </span>
         </div>
-        <Button
-          variant="secondary"
-          className="text-xs px-4 py-2 shadow-sm border border-slate-200 hover:border-slate-300"
+        <button
+          className="flex-1 sm:flex-none px-5 py-2.5 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
           onClick={(e) => {
             e.stopPropagation();
             navigate(`/users/${user.id}`, { state: { user } });
           }}
         >
-          Manage
-        </Button>
+          Manage Profile
+        </button>
       </div>
-    </Card>
+    </div>
   );
 }

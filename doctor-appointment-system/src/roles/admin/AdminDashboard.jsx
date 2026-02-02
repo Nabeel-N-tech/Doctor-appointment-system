@@ -43,43 +43,45 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-gray-500 font-bold mb-2">Total Users</h3>
-          <p className="text-3xl font-bold text-blue-600">{stats.users}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Total Users</h3>
+          <p className="text-3xl font-black text-blue-600">{stats.users}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-gray-500 font-bold mb-2">Doctors</h3>
-          <p className="text-3xl font-bold text-green-600">{stats.doctors}</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Doctors</h3>
+          <p className="text-3xl font-black text-emerald-600">{stats.doctors}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-gray-500 font-bold mb-2">Patients</h3>
-          <p className="text-3xl font-bold text-purple-600">{stats.patients}</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Patients</h3>
+          <p className="text-3xl font-black text-purple-600">{stats.patients}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-gray-500 font-bold mb-2">Appointments</h3>
-          <p className="text-3xl font-bold text-orange-600">{stats.appointments}</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Appointments</h3>
+          <p className="text-3xl font-black text-orange-600">{stats.appointments}</p>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Manage Users</h2>
-          <p className="text-gray-600 mb-4">Add, edit, or remove doctors and patients.</p>
-          <Link to="/users" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Go to Users
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:border-slate-200 transition-all group">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">👥</div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Manage Users</h2>
+          <p className="text-slate-500 mb-6 text-sm leading-relaxed">Add, edit, or remove doctors, staff, and patient accounts from the system.</p>
+          <Link to="/users" className="inline-block bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+            Go to Users →
           </Link>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Appointments</h2>
-          <p className="text-gray-600 mb-4">View and manage all hospital appointments.</p>
-          <Link to="/appointments" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            View Appointments
+        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:border-slate-200 transition-all group">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">📅</div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Appointments</h2>
+          <p className="text-slate-500 mb-6 text-sm leading-relaxed">Oversee all hospital appointments, check status, and manage schedules.</p>
+          <Link to="/appointments" className="inline-block bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+            View Appointments →
           </Link>
         </div>
       </div>
