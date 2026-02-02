@@ -516,7 +516,7 @@ export default function DoctorPatientDetails() {
                                     onChange={(e) => setDiagnosis(e.target.value)}
                                     disabled={!currentAppointment}
                                 />
-                                <div className="mt-6 flex justify-end gap-3">
+                                <div className="mt-6 flex flex-wrap justify-end gap-3">
                                     {currentAppointment && diagnosis !== originalDiagnosis && (
                                         <Button
                                             onClick={async () => {
@@ -531,14 +531,14 @@ export default function DoctorPatientDetails() {
                                                     toast.error("Failed to save diagnosis");
                                                 }
                                             }}
-                                            className="bg-slate-900 text-white border border-slate-900 px-6 py-4 rounded-2xl shadow-lg hover:bg-black hover:-translate-y-1 transition-all animate-bounce-subtle"
+                                            className="bg-slate-900 text-white border border-slate-900 px-6 py-4 rounded-2xl shadow-lg hover:bg-black hover:-translate-y-1 transition-all animate-bounce-subtle flex-1 md:flex-none justify-center"
                                         >
                                             Save Changes
                                         </Button>
                                     )}
 
                                     {currentAppointment?.status === 'in_progress' && (
-                                        <Button onClick={() => setShowCompleteModal(true)} className="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-xl hover:-translate-y-1 transition-all">
+                                        <Button onClick={() => setShowCompleteModal(true)} className="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-xl hover:-translate-y-1 transition-all flex-1 md:flex-none justify-center">
                                             Finalize & Complete Session
                                         </Button>
                                     )}
@@ -582,44 +582,58 @@ export default function DoctorPatientDetails() {
                                             </div>
 
                                             {prescriptionItems.map((item) => (
-                                                <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px_150px_40px] gap-2 md:gap-3 p-2 md:p-3 bg-slate-50 rounded-2xl border border-slate-100 items-center">
-                                                    <input
-                                                        className="h-10 bg-white border border-slate-200 px-3 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
-                                                        placeholder="e.g. Paracetamol"
-                                                        value={item.name}
-                                                        onChange={(e) => updatePrescriptionItem(item.id, 'name', e.target.value)}
-                                                    />
-                                                    <input
-                                                        className="h-10 bg-white border border-slate-200 px-3 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
-                                                        placeholder="e.g. 500mg"
-                                                        value={item.dosage}
-                                                        onChange={(e) => updatePrescriptionItem(item.id, 'dosage', e.target.value)}
-                                                    />
-                                                    <select
-                                                        className="h-10 bg-white border border-slate-200 px-2 rounded-xl text-[10px] font-black text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
-                                                        value={item.frequency}
-                                                        onChange={(e) => updatePrescriptionItem(item.id, 'frequency', e.target.value)}
-                                                    >
-                                                        <option value="1-0-1">1-0-1 (BID)</option>
-                                                        <option value="1-1-1">1-1-1 (TID)</option>
-                                                        <option value="1-0-0">1-0-0 (Morning)</option>
-                                                        <option value="0-0-1">0-0-1 (Night)</option>
-                                                        <option value="SOS">SOS (As needed)</option>
-                                                    </select>
-                                                    <input
-                                                        className="h-10 bg-white border border-slate-200 px-3 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
-                                                        placeholder="e.g. 5 Days"
-                                                        value={item.duration}
-                                                        onChange={(e) => updatePrescriptionItem(item.id, 'duration', e.target.value)}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removePrescriptionRow(item.id)}
-                                                        className="h-10 w-10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                                                        disabled={prescriptionItems.length === 1}
-                                                    >
-                                                        ✕
-                                                    </button>
+                                                <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px_150px_40px] gap-4 md:gap-3 p-4 md:p-3 bg-slate-50 rounded-2xl border border-slate-100 items-start md:items-center relative">
+                                                    <div className="w-full">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block md:hidden">Medicine Name</label>
+                                                        <input
+                                                            className="w-full h-10 bg-white border border-slate-200 px-3 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
+                                                            placeholder="e.g. Paracetamol"
+                                                            value={item.name}
+                                                            onChange={(e) => updatePrescriptionItem(item.id, 'name', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="w-full">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block md:hidden">Dosage</label>
+                                                        <input
+                                                            className="w-full h-10 bg-white border border-slate-200 px-3 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
+                                                            placeholder="e.g. 500mg"
+                                                            value={item.dosage}
+                                                            onChange={(e) => updatePrescriptionItem(item.id, 'dosage', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="w-full">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block md:hidden">Frequency</label>
+                                                        <select
+                                                            className="w-full h-10 bg-white border border-slate-200 px-2 rounded-xl text-[10px] font-black text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
+                                                            value={item.frequency}
+                                                            onChange={(e) => updatePrescriptionItem(item.id, 'frequency', e.target.value)}
+                                                        >
+                                                            <option value="1-0-1">1-0-1 (BID)</option>
+                                                            <option value="1-1-1">1-1-1 (TID)</option>
+                                                            <option value="1-0-0">1-0-0 (Morning)</option>
+                                                            <option value="0-0-1">0-0-1 (Night)</option>
+                                                            <option value="SOS">SOS (As needed)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="w-full">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block md:hidden">Duration</label>
+                                                        <input
+                                                            className="w-full h-10 bg-white border border-slate-200 px-3 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-100"
+                                                            placeholder="e.g. 5 Days"
+                                                            value={item.duration}
+                                                            onChange={(e) => updatePrescriptionItem(item.id, 'duration', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="flex justify-end md:justify-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removePrescriptionRow(item.id)}
+                                                            className="h-10 w-10 flex items-center justify-center text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                            disabled={prescriptionItems.length === 1}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>

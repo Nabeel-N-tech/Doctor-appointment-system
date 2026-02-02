@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Overlay (mobile) */}
       <div
         className={`
-          fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm transition-opacity duration-300
+          fixed inset-0 bg-slate-900/60 z-50 md:hidden backdrop-blur-sm transition-opacity duration-300
           ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
         `}
         onClick={onClose}
@@ -47,7 +47,7 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 right-0 z-50
+          fixed top-0 right-0 z-[60]
           h-screen w-[18rem] shrink-0
           bg-white shadow-2xl border-l border-slate-100
           transform transition-transform duration-300 ease-out

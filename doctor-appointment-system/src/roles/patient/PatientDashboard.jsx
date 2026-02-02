@@ -60,7 +60,7 @@ export default function PatientDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link to="/history?filter=upcoming" className="group">
-          <div className="bg-white rounded-[2.5rem] p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]"></span>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Next Steps</p>
@@ -71,7 +71,7 @@ export default function PatientDashboard() {
         </Link>
 
         <Link to="/history" className="group">
-          <div className="bg-white rounded-[2.5rem] p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">History</p>
@@ -82,7 +82,7 @@ export default function PatientDashboard() {
         </Link>
 
         <Link to="/lab-reports" className="group">
-          <div className="bg-white rounded-[2.5rem] p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></span>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Lab Results</p>
