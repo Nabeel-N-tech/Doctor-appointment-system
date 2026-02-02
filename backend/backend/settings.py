@@ -185,6 +185,15 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "cache-control",
+    "pragma",
+    "expires",
+    "authorization",
+]
+
 
 AUTH_USER_MODEL = 'accounts.User'
 
