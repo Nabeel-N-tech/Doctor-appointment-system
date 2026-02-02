@@ -657,6 +657,10 @@ def create_payment_intent(request, pk):
         # Hardcoded amount for now: $50.00 (in cents)
         amount = 5000 
         
+        if not stripe.api_key:
+            print("CRITICAL: STRIPE_SECRET_KEY is missing in backend environment.")
+            return Response({"error": "Payment service not configured (Missing Key)"}, status=503)
+
         intent = stripe.PaymentIntent.create(
             amount=amount,
             currency='usd',

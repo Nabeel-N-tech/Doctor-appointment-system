@@ -164,9 +164,17 @@ export default function BookAppointment() {
       {showPaymentModal && pendingAppointmentId && (
         <StripePaymentModal
           appointmentId={pendingAppointmentId}
-          onClose={() => {
+          onClose={async () => {
             setShowPaymentModal(false);
-            toast("Payment incomplete. Please try again.");
+            try {
+              const { cancelAppointment } = await import("../../api/appointments.api");
+              await cancelAppointment(pendingAppointmentId);
+              toast("Reservation cancelled due to incomplete payment.");
+            } catch (e) {
+              console.error(e);
+            }
+            setPendingAppointmentId(null);
+            setBookingResult(null);
           }}
           onSuccess={() => {
             setShowPaymentModal(false);
@@ -177,6 +185,7 @@ export default function BookAppointment() {
             setDate("");
             setReason("");
             setSelectedDoctor(null);
+            setPendingAppointmentId(null);
           }}
         />
       )}

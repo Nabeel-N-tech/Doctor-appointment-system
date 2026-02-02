@@ -82,7 +82,16 @@ export default function StripePaymentModal({ appointmentId, onClose, onSuccess }
     useEffect(() => {
         // Fetch configuration
         apiClient.get("/stripe-config/").then((res) => {
-            setStripePromise(loadStripe(res.data.publishableKey));
+            if (res.data.publishableKey) {
+                setStripePromise(loadStripe(res.data.publishableKey));
+            } else {
+                console.error("Stripe Publishable Key not found in response");
+                toast.error("Payment system unavailable");
+                onClose();
+            }
+        }).catch(err => {
+            console.error("Failed to load stripe config", err);
+            toast.error("Connection to payment system failed");
         });
     }, []);
 
