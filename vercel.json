@@ -1,0 +1,11 @@
+{
+    "buildCommand": "cd doctor-appointment-system && npm install && npm run build",
+    "outputDirectory": "doctor-appointment-system/dist",
+    "framework": "vite",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
