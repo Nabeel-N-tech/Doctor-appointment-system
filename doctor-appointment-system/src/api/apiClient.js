@@ -1,7 +1,21 @@
-// Hardcoded for reliability during debugging
-const BASE_URL = import.meta.env.DEV
-  ? "/api/accounts"
-  : `${import.meta.env.VITE_API_URL || "https://doctor-appointment-system-yzsw.onrender.com"}/api/accounts`;
+const isDev = import.meta.env.DEV;
+let BASE_URL = "";
+
+if (isDev) {
+  // In development, use relative path to trigger Vite proxy
+  BASE_URL = "/api/accounts";
+} else {
+  // In production, use the environment variable or fallback to the live server
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === "string" && envUrl.trim() !== "") {
+    BASE_URL = `${envUrl}/api/accounts`;
+  } else {
+    // Hardcoded fallback for production to ensure it never hits Vercel relative path
+    BASE_URL = "https://doctor-appointment-system-yzsw.onrender.com/api/accounts";
+  }
+}
+
+console.log("Environment:", isDev ? "Development" : "Production");
 console.log("API BASE URL:", BASE_URL);
 
 async function apiFetch(url, options = {}) {
