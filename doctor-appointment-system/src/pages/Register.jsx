@@ -172,7 +172,7 @@ export default function Register() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-8 sm:p-12 my-4 relative z-10"
+          className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-6 md:p-12 my-4 relative z-10"
         >
           <div className="flex justify-between items-center mb-8">
             <div>
