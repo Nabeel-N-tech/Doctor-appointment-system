@@ -32,8 +32,8 @@ export default function AppointmentHistory() {
   };
 
   return (
-    <div className="pb-32 space-y-8 animate-fade-in px-2 md:px-0">
-      <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 gap-4">
+    <div className="pb-32 space-y-8 animate-fade-in px-4 md:px-0">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">My Journey</p>
           <h1 className="text-3xl md:text-4xl font-serif text-slate-800 tracking-tight">
@@ -43,7 +43,7 @@ export default function AppointmentHistory() {
         {filter === "upcoming" && (
           <button
             onClick={clearFilter}
-            className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-3 rounded-full transition-all"
+            className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-3 rounded-full transition-all w-full md:w-auto"
           >
             Show All Visits
           </button>
@@ -51,7 +51,7 @@ export default function AppointmentHistory() {
       </div>
 
       {sortedAppointments.length === 0 ? (
-        <div className="py-24 text-center bg-white rounded-[2.5rem] shadow-sm border border-slate-50">
+        <div className="py-24 text-center bg-white rounded-[2.5rem] shadow-sm border border-slate-50 mx-2 md:mx-0">
           <h3 className="text-xl font-serif text-slate-800 mb-2">No visits found</h3>
           <p className="text-slate-400 font-medium">Your wellness journey starts when you are ready.</p>
           {filter === "upcoming" && (
@@ -59,39 +59,39 @@ export default function AppointmentHistory() {
           )}
         </div>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-4 md:gap-6">
           {sortedAppointments.map((a) => (
             <div
               key={a.id}
-              className="group relative bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden border border-slate-50"
+              className="group relative bg-white p-5 md:p-8 rounded-[2rem] shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden border border-slate-50"
               onClick={() => setSelectedAppt(a)}
             >
               {/* Decorative Gradient Blob */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
               <div className="flex flex-col md:flex-row justify-between gap-6 relative z-10">
-                <div className="flex gap-6 items-center">
+                <div className="flex gap-4 md:gap-6 items-center">
                   <div className={`
-                        w-20 h-20 rounded-2xl flex flex-col items-center justify-center shrink-0 transition-colors duration-300
+                        w-16 h-16 md:w-20 md:h-20 rounded-2xl flex flex-col items-center justify-center shrink-0 transition-colors duration-300
                         ${a.status === 'confirmed' ? 'bg-teal-50 text-teal-700' :
                       a.status === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-400'}
                   `}>
-                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Token</span>
-                    <span className="text-2xl font-serif font-bold">#{a.token_number}</span>
+                    <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest opacity-60">Token</span>
+                    <span className="text-xl md:text-2xl font-serif font-bold">#{a.token_number}</span>
                   </div>
 
                   <div>
-                    <h3 className="font-serif text-xl md:text-2xl text-slate-800 mb-1">Dr. {a.doctor_name || a.doctor}</h3>
-                    <p className="text-slate-500 text-sm md:text-base font-medium">
+                    <h3 className="font-serif text-lg md:text-2xl text-slate-800 mb-1">Dr. {a.doctor_name || a.doctor}</h3>
+                    <p className="text-slate-500 text-xs md:text-base font-medium">
                       {new Date(a.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
                     </p>
-                    <p className="text-slate-400 text-sm mt-0.5">
+                    <p className="text-slate-400 text-xs md:text-sm mt-0.5">
                       {new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })} • {a.reason || "General Checkup"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4">
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 border-t md:border-t-0 border-slate-50 pt-4 md:pt-0 mt-2 md:mt-0">
                   <div className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2
                         ${a.status === 'confirmed' ? 'bg-green-100/50 text-green-700' :
                       a.status === 'pending' ? 'bg-amber-100/50 text-amber-700' :
@@ -118,7 +118,7 @@ export default function AppointmentHistory() {
           ></div>
 
           {/* Modal Content */}
-          <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-scale-in overflow-hidden">
+          <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] p-6 md:p-10 shadow-2xl animate-scale-in overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-400 to-blue-500"></div>
 
             <div className="flex justify-between items-start mb-8">
@@ -136,7 +136,7 @@ export default function AppointmentHistory() {
 
             <div className="space-y-6">
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl font-serif text-slate-700 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl font-serif text-slate-700 shadow-sm shrink-0">
                   {(selectedAppt.doctor_name || selectedAppt.doctor || "?")[0]}
                 </div>
                 <div>

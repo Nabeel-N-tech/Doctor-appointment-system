@@ -320,7 +320,7 @@ export default function BookAppointment() {
           )}
 
           <div className={`
-                bg-white rounded-t-[2.5rem] lg:rounded-[2.5rem] p-8 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 h-[85vh] lg:h-auto overflow-y-auto lg:overflow-visible
+                bg-white rounded-t-[2.5rem] lg:rounded-[2.5rem] p-6 md:p-8 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 h-[85vh] lg:h-auto overflow-y-auto lg:overflow-visible custom-scrollbar
                 ${selectedDoctor ? 'animate-slide-up' : ''}
             `}>
             {/* Mobile Drag Handle / Close */}

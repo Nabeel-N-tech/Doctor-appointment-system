@@ -275,21 +275,21 @@ export default function Profile() {
             </div>
 
             {isEditing && (
-                <div className="flex justify-end pt-4 gap-3 animate-fade-in-up">
+                <div className="flex flex-col sm:flex-row justify-end pt-4 gap-3 animate-fade-in-up">
                     <button
                         onClick={() => {
                             setIsEditing(false);
                             // Reset logic could go here if we kept original state separate
                             toast("Changes cancelled", { icon: "" });
                         }}
-                        className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleUpdate}
                         disabled={loading || !hasChanges}
-                        className="bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-transform active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-lg shadow-teal-200"
+                        className="w-full sm:w-auto bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-transform active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-lg shadow-teal-200"
                     >
                         {loading ? "Saving..." : "Save Changes"}
                     </button>
