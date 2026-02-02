@@ -167,12 +167,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://doctor-appointment-system-lxkdw4xch-nabeels-projects-4ae6e4b1.vercel.app",
+    "https://doctor-appointment-system-dzqs9sq9k-nabeels-projects-4ae6e4b1.vercel.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://doctor-appointment-system-lxkdw4xch-nabeels-projects-4ae6e4b1.vercel.app",
+    "https://doctor-appointment-system-dzqs9sq9k-nabeels-projects-4ae6e4b1.vercel.app",
     "https://doctor-appointment-system-yzsw.onrender.com",
 ]
 
