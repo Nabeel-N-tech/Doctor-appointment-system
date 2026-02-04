@@ -11,24 +11,18 @@ import {
 
 const InputField = ({ icon: Icon, ...props }) => (
   <div className="relative group">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <Icon className="h-5 w-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-    </div>
     <input
       {...props}
-      className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+      className="block w-full px-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
     />
   </div>
 );
 
 const SelectField = ({ icon: Icon, options, ...props }) => (
   <div className="relative group">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <Icon className="h-5 w-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-    </div>
     <select
       {...props}
-      className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm appearance-none"
+      className="block w-full px-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm appearance-none"
     >
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -246,15 +240,12 @@ export default function Register() {
                   <InputField icon={MapPin} name="address" placeholder="Residential Address" value={formData.address} onChange={handleChange} required />
                 </div>
                 <div className="col-span-1 md:col-span-2 relative group">
-                  <div className="absolute top-3 left-3 pointer-events-none">
-                    <FileText className="h-5 w-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-                  </div>
                   <textarea
                     name="medical_history"
                     value={formData.medical_history}
                     onChange={handleChange}
                     placeholder="Brief Medical History"
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-relaxed bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm h-24 resize-none"
+                    className="block w-full px-3 py-3 border border-slate-200 rounded-xl leading-relaxed bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm h-24 resize-none"
                     required
                   />
                 </div>

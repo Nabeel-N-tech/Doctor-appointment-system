@@ -138,14 +138,11 @@ export default function AddUser() {
                                     {newUser.role === 'doctor' ? 'Surname / Username' : 'Username'}
                                 </label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-3.5 text-slate-400">
-                                        {newUser.role === 'doctor' ? '👨‍⚕️' : '👤'}
-                                    </span>
                                     <Input
                                         placeholder=""
                                         value={newUser.username}
                                         onChange={e => setNewUser({ ...newUser, username: e.target.value })}
-                                        className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors disabled:bg-slate-100 disabled:text-slate-500"
+                                        className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors disabled:bg-slate-100 disabled:text-slate-500"
                                         disabled={isEditMode}
                                     />
                                     {newUser.role === 'doctor' && (
@@ -159,13 +156,12 @@ export default function AddUser() {
                             <div className="space-y-1.5">
                                 <label className="text-sm font-semibold text-slate-700">Email Address</label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-3.5 text-slate-400">✉️</span>
                                     <Input
                                         type="email"
                                         placeholder=""
                                         value={newUser.email}
                                         onChange={e => setNewUser({ ...newUser, email: e.target.value })}
-                                        className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                                        className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                                     />
                                 </div>
                             </div>
@@ -181,13 +177,12 @@ export default function AddUser() {
                                     {isEditMode ? "New Password (Optional)" : "Set Password"}
                                 </label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-3.5 text-slate-400">🔒</span>
                                     <Input
                                         type="password"
                                         placeholder=""
                                         value={newUser.password}
                                         onChange={e => setNewUser({ ...newUser, password: e.target.value })}
-                                        className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                                        className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                                     />
                                 </div>
                             </div>
@@ -199,14 +194,13 @@ export default function AddUser() {
                                         Specialization <span className="text-teal-400 text-xs">(Required)</span>
                                     </label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-3.5 text-teal-500">🩺</span>
                                         <div className="relative">
                                             <input
                                                 list="specializations"
                                                 placeholder=""
                                                 value={newUser.specialization || ""}
                                                 onChange={e => setNewUser({ ...newUser, specialization: e.target.value })}
-                                                className="w-full pl-10 h-12 border border-teal-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 bg-teal-50/20 transition-all font-medium text-slate-700"
+                                                className="w-full px-3 h-12 border border-teal-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 bg-teal-50/20 transition-all font-medium text-slate-700"
                                             />
                                             <datalist id="specializations">
                                                 <option value="General Practice" />

@@ -137,7 +137,6 @@ export default function CreateLabReport() {
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xl opacity-30">🔍</div>
                                     </div>
 
                                     <div className="max-h-64 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
