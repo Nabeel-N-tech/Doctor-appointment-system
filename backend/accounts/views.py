@@ -44,7 +44,9 @@ def admin_create_user(request):
     password = request.data.get("password")
     email = request.data.get("email")
     role = request.data.get("role")
+    role = request.data.get("role")
     specialization = request.data.get("specialization") # For doctors
+    consultation_fee = request.data.get("consultation_fee")
     
     if not all([username, password, email, role]):
         return Response({"error": "All fields required"}, status=400)
@@ -59,6 +61,8 @@ def admin_create_user(request):
     user.set_password(password)
     if role == "doctor":
         user.specialization = specialization
+        if consultation_fee:
+            user.consultation_fee = consultation_fee
     user.save()
 
     return Response({"message": f"{role.capitalize()} user created successfully"}, status=201)
@@ -93,7 +97,9 @@ def admin_update_user(request, user_id):
     email = request.data.get("email")
     role = request.data.get("role")
     password = request.data.get("password")
+    password = request.data.get("password")
     specialization = request.data.get("specialization")
+    consultation_fee = request.data.get("consultation_fee")
     
     if email and email != user.email:
         if User.objects.filter(email=email).exclude(id=user_id).exists():
@@ -117,6 +123,9 @@ def admin_update_user(request, user_id):
             
     if specialization is not None and user.role == "doctor":
         user.specialization = specialization
+        
+    if consultation_fee is not None and user.role == "doctor":
+        user.consultation_fee = consultation_fee
 
     if password:
         user.set_password(password)
@@ -240,7 +249,8 @@ def get_appointments(request):
 @permission_classes([IsAuthenticated])
 def get_doctors(request):
     doctors = User.objects.filter(role="doctor")
-    return Response([{"id": d.id, "username": d.username, "specialization": d.specialization or "General Practice", "is_available": d.is_available} for d in doctors])
+    doctors = User.objects.filter(role="doctor")
+    return Response([{"id": d.id, "username": d.username, "specialization": d.specialization or "General Practice", "is_available": d.is_available, "consultation_fee": d.consultation_fee} for d in doctors])
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -265,7 +275,7 @@ def get_users(request):
             return Response({"error": "Unauthorized"}, status=403)
         users = User.objects.all()
         # Convert user objects into a list of dictionaries (JSON)
-        data = [{"id": u.id, "username": u.username, "email": u.email, "role": u.role, "specialization": u.specialization} for u in users]
+        data = [{"id": u.id, "username": u.username, "email": u.email, "role": u.role, "specialization": u.specialization, "consultation_fee": u.consultation_fee} for u in users]
         return Response(data)
     except Exception as e:
         import traceback
@@ -654,8 +664,8 @@ def create_payment_intent(request, pk):
         if request.user != appointment.patient:
             return Response({"error": "Unauthorized"}, status=403)
             
-        # Hardcoded amount for now: $50.00 (in cents)
-        amount = 5000 
+        # Amount based on doctor's fee (in cents)
+        amount = int(appointment.doctor.consultation_fee * 100) 
         
         if not stripe.api_key:
             print("CRITICAL: STRIPE_SECRET_KEY is missing in backend environment.")

@@ -401,7 +401,7 @@ export default function BookAppointment() {
                   ${processing ? 'bg-slate-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 text-white'}
                 `}
               >
-                {processing ? "Processing..." : "Pay & Book"}
+                {processing ? "Processing..." : `Pay ${selectedDoctor.consultation_fee || 50} & Book`}
               </button>
 
               <div className="text-center flex items-center justify-center gap-2 text-slate-400 text-xs font-medium pb-4">

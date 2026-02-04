@@ -20,6 +20,9 @@ class User(AbstractUser):
     # Is the doctor currently free to see patients?
     is_available = models.BooleanField(default=True)
     
+    # Consultation fee for doctors
+    consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00, help_text="Doctor's consultation fee")
+    
     # --- Profile Information (mostly for patients) ---
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)

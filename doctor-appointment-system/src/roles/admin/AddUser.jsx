@@ -23,8 +23,8 @@ export default function AddUser() {
         // Handle Edit Mode
         if (location.state?.userToEdit) {
             setIsEditMode(true);
-            const { username, email, role, id } = location.state.userToEdit;
-            const userData = { username, email, role, id, password: "" };
+            const { username, email, role, id, consultation_fee } = location.state.userToEdit;
+            const userData = { username, email, role, id, password: "", consultation_fee };
             setNewUser(userData);
             setInitialUser(userData);
         }
@@ -37,7 +37,8 @@ export default function AddUser() {
         return newUser.email !== initialUser.email ||
             newUser.password !== "" ||
             newUser.role !== initialUser.role ||
-            newUser.specialization !== initialUser.specialization;
+            newUser.specialization !== initialUser.specialization ||
+            newUser.consultation_fee !== initialUser.consultation_fee;
     };
 
     const handleSubmit = async () => {
@@ -222,6 +223,23 @@ export default function AddUser() {
                                     <p className="text-[10px] text-teal-600/70 pl-1">
                                         Choose from the list or type a new one.
                                     </p>
+                                </div>
+                            )}
+                            {/* Consultation Fee (Doctor Only) */}
+                            {newUser.role === 'doctor' && (
+                                <div className="space-y-1.5 animate-fade-in-up">
+                                    <label className="text-sm font-semibold text-teal-700 flex items-center gap-1">
+                                        Consultation Fee <span className="text-teal-400 text-xs">($)</span>
+                                    </label>
+                                    <div className="relative">
+                                        <Input
+                                            type="number"
+                                            placeholder="50.00"
+                                            value={newUser.consultation_fee || ""}
+                                            onChange={e => setNewUser({ ...newUser, consultation_fee: e.target.value })}
+                                            className="h-12 bg-teal-50/20 border-teal-200 focus:bg-white transition-colors"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>

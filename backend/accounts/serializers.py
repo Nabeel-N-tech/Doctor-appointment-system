@@ -68,7 +68,7 @@ class RegisterSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "role", "specialization", "phone_number", "address", "age", "gender", "blood_group", "medical_history", "is_available"]
+        fields = ["id", "username", "email", "role", "specialization", "phone_number", "address", "age", "gender", "blood_group", "medical_history", "is_available", "consultation_fee"]
 
 from .models import LabReport
 class LabReportSerializer(serializers.ModelSerializer):
