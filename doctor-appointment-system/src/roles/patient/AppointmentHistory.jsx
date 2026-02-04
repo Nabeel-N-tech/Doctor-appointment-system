@@ -171,7 +171,7 @@ export default function AppointmentHistory() {
               <div className="mt-8 pt-8 border-t border-slate-100 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-slate-400 uppercase mb-1">Amount Due</p>
-                  <p className="text-2xl font-serif text-slate-800">$50</p>
+                  <p className="text-2xl font-serif text-slate-800">{selectedAppt.doctor_fee || 50}</p>
                 </div>
 
                 {selectedAppt.payment_status === 'paid' ? (

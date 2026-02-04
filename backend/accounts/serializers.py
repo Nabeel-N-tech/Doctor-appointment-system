@@ -97,6 +97,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
     doctor = serializers.CharField(source="doctor.username", read_only=True)
     doctor_id = serializers.IntegerField(source="doctor.id", read_only=True)
 
+    doctor_fee = serializers.DecimalField(source="doctor.consultation_fee", max_digits=10, decimal_places=2, read_only=True)
+
     class Meta:
         model = Appointment
-        fields = ["id", "patient", "patient_id", "doctor", "doctor_id", "date", "status", "reason", "diagnosis", "token_number", "payment_status", "vitals", "decline_reason"]
+        fields = ["id", "patient", "patient_id", "doctor", "doctor_id", "doctor_fee", "date", "status", "reason", "diagnosis", "token_number", "payment_status", "vitals", "decline_reason"]
