@@ -133,7 +133,7 @@ export default function CreateLabReport() {
                                         <input
                                             type="text"
                                             className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold pr-12"
-                                            placeholder="Type name or ID to search..."
+                                            placeholder=""
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
@@ -220,7 +220,7 @@ export default function CreateLabReport() {
                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Test Name</label>
                                             <input
                                                 className="w-full h-11 bg-white border border-slate-200 px-3 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
-                                                placeholder="e.g. Blood Glucose"
+                                                placeholder=""
                                                 value={item.test_name}
                                                 onChange={(e) => handleItemChange(item.id, "test_name", e.target.value)}
                                             />
@@ -229,7 +229,7 @@ export default function CreateLabReport() {
                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Value</label>
                                             <input
                                                 className="w-full h-11 bg-white border border-slate-200 px-3 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
-                                                placeholder="0.00"
+                                                placeholder=""
                                                 value={item.observed_value}
                                                 onChange={(e) => handleItemChange(item.id, "observed_value", e.target.value)}
                                             />
@@ -238,7 +238,7 @@ export default function CreateLabReport() {
                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Unit</label>
                                             <input
                                                 className="w-full h-11 bg-white border border-slate-200 px-3 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
-                                                placeholder="mg/dL"
+                                                placeholder=""
                                                 value={item.unit}
                                                 onChange={(e) => handleItemChange(item.id, "unit", e.target.value)}
                                             />
@@ -247,7 +247,7 @@ export default function CreateLabReport() {
                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Ref Range</label>
                                             <input
                                                 className="w-full h-11 bg-white border border-slate-200 px-3 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
-                                                placeholder="70-110"
+                                                placeholder=""
                                                 value={item.reference_range}
                                                 onChange={(e) => handleItemChange(item.id, "reference_range", e.target.value)}
                                             />

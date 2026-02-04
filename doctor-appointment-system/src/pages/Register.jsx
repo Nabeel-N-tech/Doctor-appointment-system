@@ -223,7 +223,7 @@ export default function Register() {
                   ]}
                   required
                 />
-                <InputField icon={Phone} name="phone_number" type="tel" placeholder="Phone Number (10 digits)" value={formData.phone_number} onChange={handleChange} maxLength="10" required />
+                <InputField icon={Phone} name="phone_number" type="tel" placeholder="Phone Number" value={formData.phone_number} onChange={handleChange} maxLength="10" required />
                 <SelectField
                   icon={Activity}
                   name="blood_group"
@@ -253,7 +253,7 @@ export default function Register() {
                     name="medical_history"
                     value={formData.medical_history}
                     onChange={handleChange}
-                    placeholder="Brief Medical History (e.g., Allergies, Past Surgeries)"
+                    placeholder="Brief Medical History"
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-relaxed bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm h-24 resize-none"
                     required
                   />

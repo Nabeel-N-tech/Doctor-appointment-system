@@ -386,7 +386,7 @@ export default function BookAppointment() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Reason for visit</label>
                 <textarea
-                  placeholder="Share your symptoms or needs..."
+                  placeholder=""
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-100 rounded-2xl px-5 py-5 text-slate-800 font-medium transition-all outline-none resize-none h-40 text-lg"

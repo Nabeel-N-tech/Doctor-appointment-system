@@ -142,7 +142,7 @@ export default function AddUser() {
                                         {newUser.role === 'doctor' ? '👨‍⚕️' : '👤'}
                                     </span>
                                     <Input
-                                        placeholder={newUser.role === 'doctor' ? "e.g. Smith" : "johndoe"}
+                                        placeholder=""
                                         value={newUser.username}
                                         onChange={e => setNewUser({ ...newUser, username: e.target.value })}
                                         className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors disabled:bg-slate-100 disabled:text-slate-500"
@@ -162,7 +162,7 @@ export default function AddUser() {
                                     <span className="absolute left-3 top-3.5 text-slate-400">✉️</span>
                                     <Input
                                         type="email"
-                                        placeholder="john@clinic.com"
+                                        placeholder=""
                                         value={newUser.email}
                                         onChange={e => setNewUser({ ...newUser, email: e.target.value })}
                                         className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
@@ -184,7 +184,7 @@ export default function AddUser() {
                                     <span className="absolute left-3 top-3.5 text-slate-400">🔒</span>
                                     <Input
                                         type="password"
-                                        placeholder={isEditMode ? "Leave blank to keep current" : "••••••••"}
+                                        placeholder=""
                                         value={newUser.password}
                                         onChange={e => setNewUser({ ...newUser, password: e.target.value })}
                                         className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
@@ -203,7 +203,7 @@ export default function AddUser() {
                                         <div className="relative">
                                             <input
                                                 list="specializations"
-                                                placeholder="Select or type..."
+                                                placeholder=""
                                                 value={newUser.specialization || ""}
                                                 onChange={e => setNewUser({ ...newUser, specialization: e.target.value })}
                                                 className="w-full pl-10 h-12 border border-teal-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 bg-teal-50/20 transition-all font-medium text-slate-700"
@@ -254,6 +254,6 @@ export default function AddUser() {
                     </Button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
