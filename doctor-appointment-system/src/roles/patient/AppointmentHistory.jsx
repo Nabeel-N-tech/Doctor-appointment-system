@@ -170,26 +170,26 @@ export default function AppointmentHistory() {
 
               <div className="mt-8 pt-8 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">Amount Due</p>
-                  <p className="text-2xl font-serif text-slate-800">{selectedAppt.doctor_fee || 50}</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">
+                    {selectedAppt.payment_status === 'paid' ? 'Payment Status' : 'Amount Due'}
+                  </p>
+                  <p className={`text-2xl font-serif ${selectedAppt.payment_status === 'paid' ? 'text-green-600' : 'text-slate-800'}`}>
+                    {selectedAppt.payment_status === 'paid' ? 'Payment Successful' : (selectedAppt.doctor_fee || 50)}
+                  </p>
                 </div>
 
-                {selectedAppt.payment_status === 'paid' ? (
-                  <div className="px-6 py-3 rounded-2xl bg-green-100 text-green-700 font-bold text-sm tracking-wide">
-                    PAID
-                  </div>
-                ) : selectedAppt.status !== 'cancelled' ? (
+                {selectedAppt.payment_status !== 'paid' && selectedAppt.status !== 'cancelled' ? (
                   <button
                     onClick={() => handlePay(selectedAppt)}
                     className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200"
                   >
                     Pay Now
                   </button>
-                ) : (
+                ) : selectedAppt.status === 'cancelled' ? (
                   <div className="px-6 py-3 rounded-2xl bg-slate-100 text-slate-500 font-bold text-sm tracking-wide">
                     CANCELLED
                   </div>
-                )}
+                ) : null}
               </div>
 
               {selectedAppt.status === 'pending' && (
