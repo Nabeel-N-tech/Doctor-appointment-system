@@ -6,17 +6,32 @@ import { motion } from "framer-motion";
 import {
   User, Mail, Lock, Calendar, Phone, MapPin,
   Activity, FileText, HeartPulse, ArrowRight,
-  ShieldCheck, ArrowLeft
+  ShieldCheck, ArrowLeft, Eye, EyeOff
 } from "lucide-react";
 
-const InputField = ({ icon: Icon, ...props }) => (
-  <div className="relative group">
-    <input
-      {...props}
-      className="block w-full px-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
-    />
-  </div>
-);
+const InputField = ({ icon: Icon, ...props }) => {
+  const [show, setShow] = useState(false);
+  const isPassword = props.type === "password";
+
+  return (
+    <div className="relative group">
+      <input
+        {...props}
+        type={isPassword ? (show ? "text" : "password") : props.type}
+        className={`block w-full px-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm ${isPassword ? "pr-10" : ""}`}
+      />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-teal-600 transition-colors focus:outline-none z-10 cursor-pointer"
+        >
+          {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        </button>
+      )}
+    </div>
+  );
+};
 
 const SelectField = ({ icon: Icon, options, ...props }) => (
   <div className="relative group">
