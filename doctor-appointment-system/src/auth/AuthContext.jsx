@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.clear();N
+    localStorage.clear();
     setUser(null);
   };
 

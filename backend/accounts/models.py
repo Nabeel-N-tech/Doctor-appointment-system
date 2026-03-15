@@ -24,6 +24,7 @@ class User(AbstractUser):
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00, help_text="Doctor's consultation fee")
     
     # --- Profile Information (mostly for patients) ---
+    profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     age = models.PositiveIntegerField(blank=True, null=True)
@@ -57,6 +58,11 @@ class Appointment(models.Model):
         max_length=20,
         choices=[("pending", "Pending"), ("paid", "Paid")],
         default="pending"
+    )
+    consultation_type = models.CharField(
+        max_length=20,
+        choices=[("normal", "Normal Consultation"), ("online", "Online Consultation")],
+        default="normal"
     )
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -111,3 +117,15 @@ class Prescription(models.Model):
 
     def __str__(self):
         return f"Script for {self.patient.username} by {self.doctor.username}"
+
+class MedicalRecord(models.Model):
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="medical_records")
+    doctor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_medical_records")
+    appointment = models.ForeignKey(Appointment, on_delete=models.SET_NULL, null=True, blank=True, related_name="medical_records")
+    notes = models.TextField(blank=True, null=True)
+    diagnosis = models.TextField(blank=True, null=True)
+    treatment_plan = models.TextField(blank=True, null=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Medical Record for {self.patient.username} on {self.date}"

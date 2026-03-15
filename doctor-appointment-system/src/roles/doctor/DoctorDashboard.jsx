@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import { getAppointments } from "../../api/appointments.api";
@@ -9,6 +9,11 @@ import LabReportTemplate from "../../components/domain/LabReportTemplate";
 import { getLabReports } from "../../api/lab.api";
 import apiClient from "../../api/apiClient";
 import toast from "react-hot-toast";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { fetchMedicalRecords, createMedicalRecord } from "../../api/ehr.api";
+import { fetchDoctorAnalytics } from "../../api/analytics.api";
+import EHRTimeline from "../../components/domain/EHRTimeline";
+import { Users, CalendarDays, Activity, CheckCircle, XCircle, Video } from "lucide-react";
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
@@ -20,8 +25,11 @@ export default function DoctorDashboard() {
 
   const [declineModal, setDeclineModal] = useState({ show: false, apptId: null });
   const [declineReason, setDeclineReason] = useState("");
+  const [acceptModal, setAcceptModal] = useState({ show: false, apptId: null, initialDate: null });
+  const [acceptDate, setAcceptDate] = useState("");
 
   const [isAvailable, setIsAvailable] = useState(true);
+  const [analytics, setAnalytics] = useState(null);
 
   // Run this code when the dashboard loads to get fresh data
   useEffect(() => {
@@ -29,6 +37,7 @@ export default function DoctorDashboard() {
     getLabReports().then(setReports);
     apiClient.get('/doctors/').then(res => setDoctors(res.data));
     apiClient.get('/profile/').then(res => setIsAvailable(res.data.is_available));
+    fetchDoctorAnalytics().then(setAnalytics).catch(console.error);
   }, []);
 
   // Switch the doctor's status between "Available" and "Unavailable"
@@ -42,23 +51,26 @@ export default function DoctorDashboard() {
     }
   };
 
-  const handleUpdateStatus = async (id, newStatus, reason = "") => {
+  const handleUpdateStatus = async (id, newStatus, reason = "", date = "") => {
     const loadingToast = toast.loading(`${newStatus === 'confirmed' ? 'Confirming' : 'Declining'} appointment...`);
     try {
       const { updateAppointmentStatus: updateApi } = await import("../../api/appointments.api");
       const updates = { status: newStatus };
       if (reason) updates.decline_reason = reason;
+      if (date) updates.date = new Date(date).toISOString();
 
       await updateApi(id, updates);
 
       // Update local state
       setAppointments(prev => prev.map(a =>
-        a.id === id ? { ...a, status: newStatus, decline_reason: reason } : a
+        a.id === id ? { ...a, status: newStatus, decline_reason: reason, date: updates.date || a.date } : a
       ));
 
       toast.success(`Appointment ${newStatus}`, { id: loadingToast });
       setDeclineModal({ show: false, apptId: null });
       setDeclineReason("");
+      setAcceptModal({ show: false, apptId: null, initialDate: null });
+      setAcceptDate("");
     } catch (err) {
       toast.error("Failed to update status", { id: loadingToast });
     }
@@ -140,13 +152,13 @@ export default function DoctorDashboard() {
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: "Today's Appointments", value: todayCount, color: "teal", bg: "bg-teal-50", text: "text-teal-600" },
-          { label: "Unique Patients", value: uniquePatients, color: "indigo", bg: "bg-indigo-50", text: "text-indigo-600" },
-          { label: "Approval Rating", value: "98%", color: "emerald", bg: "bg-emerald-50", text: "text-emerald-600" }
+          { label: "Today's Appointments", value: todayCount, color: "teal", bg: "bg-teal-50", text: "text-teal-600", Icon: CalendarDays },
+          { label: "Unique Patients", value: uniquePatients, color: "indigo", bg: "bg-indigo-50", text: "text-indigo-600", Icon: Users },
+          { label: "Approval Rating", value: "98%", color: "emerald", bg: "bg-emerald-50", text: "text-emerald-600", Icon: Activity }
         ].map((stat, i) => (
           <div key={i} className="bg-white rounded-3xl p-5 shadow-lg shadow-slate-100/50 flex flex-col justify-center gap-3 hover:-translate-y-1 transition-transform duration-300 border border-slate-100">
-            <div className={`w-12 h-12 ${stat.bg} rounded-xl flex items-center justify-center text-xl mb-1`}>
-
+            <div className={`w-12 h-12 ${stat.bg} ${stat.text} rounded-xl flex items-center justify-center mb-1`}>
+              <stat.Icon size={24} strokeWidth={2.5} />
             </div>
             <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
@@ -155,6 +167,36 @@ export default function DoctorDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Analytics Charts */}
+      {
+        analytics && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <h3 className="font-bold text-slate-700 mb-4 text-left">This Week's Revenue</h3>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-4xl font-black text-blue-600">${analytics.revenue_this_week}</div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">{analytics.total_appointments_this_week} Appts</div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <h3 className="font-bold text-slate-700 mb-4 text-left">Appointment Status (This Week)</h3>
+              <div className="h-40">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                  <BarChart data={analytics.appointment_status}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="status" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, textTransform: 'capitalize' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} width={30} allowDecimals={false} />
+                    <RechartsTooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       {/* Main Content Areas */}
       <div className="mt-8">
@@ -206,7 +248,12 @@ export default function DoctorDashboard() {
                           <span className="text-[8px] font-black uppercase tracking-widest mt-1">Pending</span>
                         </div>
                         <div className="text-left">
-                          <h4 className="font-black text-slate-900 text-lg leading-none">{a.patient}</h4>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-black text-slate-900 text-lg leading-none">{a.patient}</h4>
+                            <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${a.consultation_type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
+                              {a.consultation_type === 'online' ? '💻 Video' : '🏥 In-Person'}
+                            </span>
+                          </div>
                           <div className="flex items-center gap-2 text-amber-600 text-xs font-bold mt-2">
                             <span>{new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
                             <span className="mx-1 opacity-30">|</span>
@@ -223,7 +270,14 @@ export default function DoctorDashboard() {
                           Decline
                         </button>
                         <button
-                          onClick={() => handleUpdateStatus(a.id, 'confirmed')}
+                          onClick={() => {
+                            if (a.consultation_type === 'online') {
+                              setAcceptModal({ show: true, apptId: a.id, initialDate: a.date });
+                              setAcceptDate(new Date(a.date).toISOString().slice(0, 16));
+                            } else {
+                              handleUpdateStatus(a.id, 'confirmed');
+                            }
+                          }}
                           className="h-11 px-7 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 shadow-xl shadow-amber-200 transition-all active:scale-95"
                         >
                           Confirm Appt
@@ -255,6 +309,9 @@ export default function DoctorDashboard() {
                     <div className="text-left min-w-0">
                       <div className="flex items-center gap-3 mb-1 flex-wrap">
                         <h4 className="font-black text-slate-900 text-lg leading-none truncate">{a.patient}</h4>
+                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${a.consultation_type === 'online' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                          {a.consultation_type === 'online' ? '💻 Video' : '🏥 In-Person'}
+                        </span>
                         <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${a.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                           a.status === 'in_progress' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
                             a.status === 'cancelled' ? 'bg-slate-100 text-slate-400 border-slate-200' :
@@ -288,6 +345,11 @@ export default function DoctorDashboard() {
                       </div>
                     ) : (
                       <>
+                        {(a.status === 'confirmed' || a.status === 'in_progress') && listView === 'active' && (
+                          <Link to={`/video-call/${a.id}`} className="h-10 px-4 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100 flex items-center justify-center gap-2">
+                            <Video size={16} /> Call
+                          </Link>
+                        )}
                         <button
                           onClick={() => handlePatientClick(a.patient_id)}
                           className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-white hover:text-slate-800 hover:shadow-md border border-transparent hover:border-slate-100 flex items-center justify-center transition-all"
@@ -312,32 +374,72 @@ export default function DoctorDashboard() {
 
 
       {/* Decline Reason Modal */}
-      {declineModal.show && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+      {
+        declineModal.show && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white w-full max-w-md rounded-[2rem] p-8 shadow-2xl animate-scale-in">
+              <h3 className="text-xl font-black text-slate-900 mb-2">Reason for Decline</h3>
+              <p className="text-sm text-slate-500 mb-6 font-medium">Please provide a reason. This will be visible to the patient.</p>
+
+              <textarea
+                className="w-full h-32 bg-slate-50 rounded-2xl p-4 font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-rose-50 focus:bg-white transition-all resize-none border-2 border-transparent focus:border-rose-100"
+                placeholder="e.g. Doctor is unavailable, please reschedule for tomorrow..."
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                autoFocus
+              />
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setDeclineModal({ show: false, apptId: null })}
+                  className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleUpdateStatus(declineModal.apptId, 'cancelled', declineReason)}
+                  className="flex-1 py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all"
+                >
+                  Confirm Decline
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Accept/Schedule Modal for Online Consultations */}
+      {acceptModal.show && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in text-left">
           <div className="bg-white w-full max-w-md rounded-[2rem] p-8 shadow-2xl animate-scale-in">
-            <h3 className="text-xl font-black text-slate-900 mb-2">Reason for Decline</h3>
-            <p className="text-sm text-slate-500 mb-6 font-medium">Please provide a reason. This will be visible to the patient.</p>
+            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm">
+              📅
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">Schedule Consultation</h3>
+            <p className="text-sm text-slate-500 mb-6 font-medium">Set the specific date and time for this online consultation. The patient will be notified immediately.</p>
 
-            <textarea
-              className="w-full h-32 bg-slate-50 rounded-2xl p-4 font-bold text-sm text-slate-700 outline-none focus:ring-4 focus:ring-rose-50 focus:bg-white transition-all resize-none border-2 border-transparent focus:border-rose-100"
-              placeholder="e.g. Doctor is unavailable, please reschedule for tomorrow..."
-              value={declineReason}
-              onChange={(e) => setDeclineReason(e.target.value)}
-              autoFocus
-            />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Selected Date & Time</label>
+              <input
+                type="datetime-local"
+                className="w-full bg-slate-50 rounded-2xl px-4 py-4 font-bold text-slate-800 outline-none border-2 border-transparent focus:border-blue-400 focus:bg-white transition-all shadow-inner"
+                value={acceptDate}
+                onChange={(e) => setAcceptDate(e.target.value)}
+              />
+            </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-8">
               <button
-                onClick={() => setDeclineModal({ show: false, apptId: null })}
+                onClick={() => setAcceptModal({ show: false, apptId: null, initialDate: null })}
                 className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleUpdateStatus(declineModal.apptId, 'cancelled', declineReason)}
-                className="flex-1 py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all"
+                onClick={() => handleUpdateStatus(acceptModal.apptId, 'confirmed', "", acceptDate)}
+                className="flex-1 py-4 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
               >
-                Confirm Decline
+                Accept & Notify
               </button>
             </div>
           </div>
@@ -414,6 +516,41 @@ function ConsultationModal({ patient, doctors, reports, onClose }) {
   const [referDoctor, setReferDoctor] = useState("");
   const [referReason, setReferReason] = useState("");
   const [referLoading, setReferLoading] = useState(false);
+  const [medicalRecords, setMedicalRecords] = useState([]);
+
+  const [ehrDiagnosis, setEhrDiagnosis] = useState("");
+  const [ehrNotes, setEhrNotes] = useState("");
+  const [ehrPlan, setEhrPlan] = useState("");
+  const [ehrLoading, setEhrLoading] = useState(false);
+
+  useEffect(() => {
+    if (patient?.id) {
+      fetchMedicalRecords(patient.id).then(setMedicalRecords).catch(console.error);
+    }
+  }, [patient?.id]);
+
+  const handleSaveRecord = async (e) => {
+    e.preventDefault();
+    if (!ehrNotes && !ehrDiagnosis && !ehrPlan) return toast.error("Provide at least one detail.");
+    setEhrLoading(true);
+    try {
+      const newRecord = await createMedicalRecord({
+        patient_id: patient.id,
+        notes: ehrNotes,
+        diagnosis: ehrDiagnosis,
+        treatment_plan: ehrPlan
+      });
+      setMedicalRecords(prev => [newRecord, ...prev]);
+      toast.success("Medical record saved");
+      setEhrDiagnosis("");
+      setEhrNotes("");
+      setEhrPlan("");
+    } catch (err) {
+      toast.error("Failed to save record");
+    } finally {
+      setEhrLoading(false);
+    }
+  };
 
   const handlePrescribe = async (e) => {
     e.preventDefault();
@@ -575,7 +712,7 @@ function ConsultationModal({ patient, doctors, reports, onClose }) {
               <div className="max-w-4xl mx-auto space-y-8 animate-fade-in py-8">
                 <div className="text-center group cursor-default">
                   <div className="w-20 h-20 bg-teal-50 text-teal-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 shadow-xl shadow-teal-100 group-hover:scale-110 transition-transform duration-500 ease-out">
-
+                    🩺
                   </div>
                   <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight mb-2">Clinical Session</h2>
                   <p className="text-slate-500 font-medium max-w-lg mx-auto text-base md:text-lg leading-relaxed">
@@ -583,17 +720,49 @@ function ConsultationModal({ patient, doctors, reports, onClose }) {
                   </p>
                 </div>
 
-                {/* Vitals Placeholders */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 opacity-40 hover:opacity-100 transition-opacity duration-500 grayscale hover:grayscale-0">
-                  {['Body Temperature', 'Pulse Rate', 'Respiration Rate'].map((vital, i) => (
-                    <div key={vital} className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex items-center justify-between sm:block group">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 group-hover:text-teal-500 transition-colors">{vital}</p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-black text-slate-200 group-hover:text-slate-800 transition-colors">--</span>
-                        <span className="text-[10px] font-bold text-slate-300 mb-1">N/A</span>
-                      </div>
+                <div className="bg-white p-6 md:p-10 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
+                  <h3 className="text-xl font-bold text-slate-800 mb-6">Add Medical Note</h3>
+                  <form onSubmit={handleSaveRecord} className="space-y-4">
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">Diagnosis / Assessment</label>
+                      <input
+                        className="w-full bg-slate-50 rounded-2xl px-4 py-3 font-bold text-slate-700 outline-none transition-all border-2 border-transparent focus:border-teal-400 focus:bg-white"
+                        placeholder="What is the primary diagnosis?"
+                        value={ehrDiagnosis}
+                        onChange={(e) => setEhrDiagnosis(e.target.value)}
+                      />
                     </div>
-                  ))}
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">Clinical Notes (SOAP)</label>
+                      <textarea
+                        className="w-full h-32 bg-slate-50 rounded-2xl p-4 font-medium text-sm text-slate-700 outline-none transition-all resize-none border-2 border-transparent focus:border-teal-400 focus:bg-white"
+                        placeholder="Subjective, Objective, Assessment, Plan..."
+                        value={ehrNotes}
+                        onChange={(e) => setEhrNotes(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">Treatment Plan</label>
+                      <textarea
+                        className="w-full h-24 bg-slate-50 rounded-2xl p-4 font-medium text-sm text-slate-700 outline-none transition-all resize-none border-2 border-transparent focus:border-teal-400 focus:bg-white"
+                        placeholder="Recommended treatment, lifestyle changes, follow-up..."
+                        value={ehrPlan}
+                        onChange={(e) => setEhrPlan(e.target.value)}
+                      />
+                    </div>
+
+                    <Button disabled={ehrLoading} className="w-full h-14 bg-teal-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-teal-700 shadow-lg shadow-teal-500/20 active:translate-y-0 transition-all flex items-center justify-center gap-2 mt-4">
+                      {ehrLoading ? 'Saving...' : 'Save into Medical Record'}
+                    </Button>
+                  </form>
+                </div>
+
+                <div className="mt-12 bg-white p-6 md:p-10 rounded-[2rem] shadow-sm border border-slate-100">
+                  <h3 className="text-xl font-bold text-slate-800 mb-6">Patient Timeline</h3>
+                  <EHRTimeline records={medicalRecords} />
                 </div>
               </div>
             )}

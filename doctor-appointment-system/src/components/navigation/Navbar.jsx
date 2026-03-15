@@ -2,27 +2,40 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import NotificationBell from "./NotificationBell";
+import apiClient from "../../api/apiClient";
+
+import {
+  LayoutDashboard,
+  History,
+  FileText,
+  CalendarPlus,
+  CalendarDays,
+  Clock,
+  Users,
+  CalendarCheck,
+  ClipboardPen
+} from "lucide-react";
 
 const linksByRole = {
   patient: [
-    { label: "Dashboard", path: "/" },
-    { label: "History", path: "/history" },
-    { label: "Lab Reports", path: "/lab-reports" },
-    { label: "Book Appointment", path: "/book" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "History", path: "/history", icon: History },
+    { label: "Lab Reports", path: "/lab-reports", icon: FileText },
+    { label: "Book Appointment", path: "/book", icon: CalendarPlus },
   ],
   doctor: [
-    { label: "Dashboard", path: "/" },
-    { label: "Schedule", path: "/schedule" },
-    { label: "Availability", path: "/availability" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Schedule", path: "/schedule", icon: CalendarDays },
+    { label: "Availability", path: "/availability", icon: Clock },
   ],
   admin: [
-    { label: "Dashboard", path: "/" },
-    { label: "Manage Users", path: "/users" },
-    { label: "Appointments", path: "/appointments" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Manage Users", path: "/users", icon: Users },
+    { label: "Appointments", path: "/appointments", icon: CalendarCheck },
   ],
   staff: [
-    { label: "Dashboard", path: "/" },
-    { label: "Create Report", path: "/create-report" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Create Report", path: "/create-report", icon: ClipboardPen },
   ],
 };
 
@@ -31,8 +44,20 @@ export default function Navbar({ onMenuClick }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const location = useLocation();
+  const [profilePic, setProfilePic] = useState(null);
 
   const currentLinks = user ? linksByRole[user.role] || [] : [];
+
+  useEffect(() => {
+    if (user) {
+      apiClient.get('/profile/').then(res => {
+        if (res.data && res.data.profile_picture) {
+          // Ensure full URL if using a remote backend, or base local
+          setProfilePic(res.data.profile_picture);
+        }
+      }).catch(err => console.log('Navbar profile fetch error:', err));
+    }
+  }, [user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -103,7 +128,8 @@ export default function Navbar({ onMenuClick }) {
                           : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"}
                     `}
                     >
-                      <span className="flex items-center">
+                      <span className="flex items-center gap-2">
+                        {link.icon && <link.icon className={`w-4 h-4 ${isActive ? 'text-teal-600' : 'text-slate-400 group-hover:text-teal-600'} transition-colors`} />}
                         {link.label}
                       </span>
                       {isActive && (
@@ -149,8 +175,12 @@ export default function Navbar({ onMenuClick }) {
                     </span>
                   </div>
 
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all">
-                    {user.username ? user.username[0].toUpperCase() : "U"}
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all overflow-hidden">
+                    {profilePic ? (
+                      <img src={typeof profilePic === 'string' && profilePic.startsWith('http') ? profilePic : `${import.meta.env.DEV ? "http://localhost:8000" : "https://doctor-appointment-system-yzsw.onrender.com"}${profilePic}`} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      user.username ? user.username[0].toUpperCase() : "U"
+                    )}
                   </div>
                 </button>
 

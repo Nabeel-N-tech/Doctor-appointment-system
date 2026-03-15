@@ -47,13 +47,16 @@ LOGGING = {
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-build-only')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ValueError("SECRET_KEY environment variable is required in production")
+    SECRET_KEY = 'django-insecure-dev-key-only-for-development'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -111,7 +114,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
+        conn_max_age=0,
         conn_health_checks=True,
     )
 }
@@ -157,21 +160,26 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-#     "http://127.0.0.1:5173",
-#     "https://doctor-appointment-system-lxkdw4xch-nabeels-projects-4ae6e4b1.vercel.app",
-#     "https://doctor-appointment-system-dzqs9sq9k-nabeels-projects-4ae6e4b1.vercel.app",
-#     "https://doctor-appointment-system-pi-azure.vercel.app",
-# ]
-
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Configuration - Whitelist specific origins only
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if os.getenv('CORS_ALLOWED_ORIGINS') else [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+# Debug mode adds local development origins
+if DEBUG:
+    CORS_ALLOWED_ORIGINS.extend([
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ])
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
@@ -216,13 +224,14 @@ SIMPLE_JWT = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Stripe Configuration
-# Stripe Configuration
-# Fallback keys added for simplified deployment - DO NOT USE IN REAL PRODUCTION
-import base64
+# ⚠️ IMPORTANT: These MUST be set in production environment variables
+# Never commit actual keys to version control
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 
-# Stripe Configuration
-# Fallback keys added for simplified deployment - using b64 to avoid git scanners
-# DO NOT USE IN REAL PRODUCTION
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', base64.b64decode('c2tfdGVzdF81MVNuWm9tQ0M3VGIwTlJVbUlLWXhPVDdrYnR1MVFVZHd3dGNoS2RseTNPdm9LNTN0UjlJYzk4Z1hCc1hxZFVLVzhlTWx3WFgzTWdycUZzYjNvN0VZNE1PUTAwOFVNbUpnaWw=').decode())
-STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', base64.b64decode('cGtfdGVzdF81MVNuWm9tQ0M3VGIwTlJVbVNGTU9vQW11QU83VGNBeTY0cDN6NFlFTW0wdkZVMVJsWkRYTmdBT2FWUEZHOHJwcGtNQUcwN2JDYnBUUGhnd0ZyZFA0UlI3WTAwRFJ0b1VlNGI=').decode())
+if not DEBUG and (not STRIPE_SECRET_KEY or not STRIPE_PUBLISHABLE_KEY):
+    raise ValueError(
+        "STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY must be set in production environment. "
+        "DO NOT hardcode keys in settings.py"
+    )
 

@@ -13,10 +13,12 @@ const COUNTRY_CODES = [
 
 export default function Profile() {
     const { user } = useAuth();
+    const API_BASE = import.meta.env.DEV ? "http://localhost:8000" : "https://doctor-appointment-system-yzsw.onrender.com";
     const [loading, setLoading] = useState(false);
     const [countryCode, setCountryCode] = useState("+91");
     const [isEditing, setIsEditing] = useState(false);
     const [originalData, setOriginalData] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
     const [profileData, setProfileData] = useState({
         username: "",
         email: "",
@@ -25,7 +27,8 @@ export default function Profile() {
         age: "",
         gender: "",
         blood_group: "",
-        medical_history: ""
+        medical_history: "",
+        profile_picture: null
     });
 
     useEffect(() => {
@@ -58,8 +61,10 @@ export default function Profile() {
                 gender: data.gender || "",
                 blood_group: data.blood_group || "",
                 medical_history: data.medical_history || "",
-                specialization: data.specialization || ""
+                specialization: data.specialization || "",
+                profile_picture: null
             };
+            setPreviewImage(data.profile_picture || null);
             setProfileData(initialData);
             setOriginalData(initialData);
         } catch (error) {
@@ -79,19 +84,17 @@ export default function Profile() {
         setLoading(true);
         const toastId = toast.loading("Updating...");
         try {
-            // Combine code and number
-            // Sanitize payload
-            const payload = {
-                phone_number: profileData.phone_number ? `${countryCode}${profileData.phone_number}` : null,
-                address: profileData.address,
-                medical_history: profileData.medical_history,
-                age: profileData.age === "" ? null : profileData.age,
-                gender: profileData.gender === "" ? null : profileData.gender,
-                blood_group: profileData.blood_group === "" ? null : profileData.blood_group,
-                specialization: profileData.specialization // In case doctor 
-            };
+            const formData = new FormData();
+            if (profileData.phone_number) formData.append("phone_number", `${countryCode}${profileData.phone_number}`);
+            if (profileData.address !== null) formData.append("address", profileData.address || "");
+            if (profileData.medical_history !== null) formData.append("medical_history", profileData.medical_history || "");
+            if (profileData.age !== "") formData.append("age", profileData.age);
+            if (profileData.gender !== "") formData.append("gender", profileData.gender);
+            if (profileData.blood_group !== "") formData.append("blood_group", profileData.blood_group);
+            if (profileData.specialization) formData.append("specialization", profileData.specialization);
+            if (profileData.profile_picture) formData.append("profile_picture", profileData.profile_picture);
 
-            await updateProfile(payload);
+            await updateProfile(formData);
             toast.success("Profile updated!", { id: toastId });
             setIsEditing(false); // Exit edit mode on success
             // Update original data to match current
@@ -135,17 +138,47 @@ export default function Profile() {
                 )}
 
                 {/* Account Info (Read Only) */}
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase">Username</label>
-                        <div className="w-full mt-1 p-3 bg-slate-50 border border-transparent rounded-lg text-slate-700 font-black">
-                            {profileData.username}
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-teal-500 shadow-md">
+                            {previewImage ? (
+                                <img src={(previewImage.startsWith('blob:') || previewImage.startsWith('http')) ? previewImage : `${API_BASE}${previewImage}`} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                            )}
                         </div>
+                        {isEditing && (
+                            <label className="cursor-pointer text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-3 py-1.5 rounded-full transition-colors">
+                                Change Picture
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setProfileData({ ...profileData, profile_picture: file });
+                                            setPreviewImage(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                />
+                            </label>
+                        )}
                     </div>
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
-                        <div className="w-full mt-1 p-3 bg-slate-50 border border-transparent rounded-lg text-slate-700 font-black">
-                            {profileData.email}
+                    <div className="flex-1 grid md:grid-cols-2 gap-6 w-full">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase">Username</label>
+                            <div className="w-full mt-1 p-3 bg-slate-50 border border-transparent rounded-lg text-slate-700 font-black">
+                                {profileData.username}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+                            <div className="w-full mt-1 p-3 bg-slate-50 border border-transparent rounded-lg text-slate-700 font-black">
+                                {profileData.email}
+                            </div>
                         </div>
                     </div>
                 </div>

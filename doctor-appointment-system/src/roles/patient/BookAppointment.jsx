@@ -14,6 +14,7 @@ export default function BookAppointment() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [date, setDate] = useState("");
   const [reason, setReason] = useState("");
+  const [consultationType, setConsultationType] = useState("normal");
   const [bookingResult, setBookingResult] = useState(null);
 
   // Payment State
@@ -62,15 +63,23 @@ export default function BookAppointment() {
 
   const handleBook = async (e) => {
     if (e) e.preventDefault();
-    if (!selectedDoctor || !date) {
+    const isOnline = consultationType === 'online';
+
+    if (!selectedDoctor) {
+      toast.error("Please select a doctor");
+      return;
+    }
+
+    if (!isOnline && !date) {
       toast.error("Please pick a time for your visit");
       return;
     }
 
-    const selectedDate = new Date(date);
+    const selectedDate = date ? new Date(date) : null;
     const now = new Date();
-    if (selectedDate < now) {
-      toast.error("Please select a valid date and time.");
+
+    if (!isOnline && selectedDate && selectedDate < now) {
+      toast.error("Please select a valid future date and time.");
       return;
     }
 
@@ -81,8 +90,9 @@ export default function BookAppointment() {
       // 1. Create Appointment (Pending Status)
       const result = await bookAppointment({
         doctor_id: selectedDoctor.id,
-        date: selectedDate.toISOString(),
-        reason: reason
+        date: consultationType === 'online' ? new Date(Date.now() + 86400000).toISOString() : selectedDate.toISOString(),
+        reason: reason,
+        consultation_type: consultationType
       });
 
       // 2. Open Payment Modal
@@ -131,11 +141,19 @@ export default function BookAppointment() {
         </p>
 
         <div className="grid md:grid-cols-2 gap-6 text-left max-w-lg mx-auto mb-12">
-          <div className="bg-slate-50 p-6 rounded-3xl">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2">When</p>
-            <p className="font-medium text-slate-800 text-lg">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-            <p className="text-slate-500">{new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-          </div>
+          {date ? (
+            <div className="bg-slate-50 p-6 rounded-3xl">
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-2">When</p>
+              <p className="font-medium text-slate-800 text-lg">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+              <p className="text-slate-500">{new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+            </div>
+          ) : (
+            <div className="bg-blue-50 p-6 rounded-3xl">
+              <p className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-2">Schedule</p>
+              <p className="font-medium text-blue-800 text-lg">Awaiting Doctor's Time</p>
+              <p className="text-blue-500 text-xs">You'll be notified via WhatsApp/Email</p>
+            </div>
+          )}
           <div className="bg-teal-600 p-6 rounded-3xl text-white relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white opacity-10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
             <p className="text-xs text-teal-200 font-bold uppercase tracking-widest mb-2">Your Token</p>
@@ -361,22 +379,61 @@ export default function BookAppointment() {
 
             <div className="space-y-6">
               {/* Date Input */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Date</label>
-                <div className="relative group">
-                  <input
-                    type="datetime-local"
-                    min={minDateTime}
-                    max={maxDateTime}
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-100 rounded-2xl pl-12 pr-4 py-5 text-slate-800 font-medium transition-all outline-none appearance-none text-lg"
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-slate-600 transition-colors pointer-events-none">
+              {consultationType !== "online" ? (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Date</label>
+                  <div className="relative group">
+                    <input
+                      type="datetime-local"
+                      min={minDateTime}
+                      max={maxDateTime}
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-100 rounded-2xl pl-12 pr-4 py-5 text-slate-800 font-medium transition-all outline-none appearance-none text-lg"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-slate-600 transition-colors pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-blue-900 mb-1">Doctor Schedules the Time</h4>
+                    <p className="text-xs text-blue-700 leading-relaxed font-medium">
+                      For online consultations, you don't need to pick a slot. Your doctor will review your request and assign the best available time.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Consultation Type Input */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Consultation Mode</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setConsultationType("normal")}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${consultationType === "normal" ? "border-teal-500 bg-teal-50 text-teal-700 shadow-md" : "border-slate-100 bg-white text-slate-400 hover:border-slate-200 hover:bg-slate-50"}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    <span className="font-bold text-sm">In-Person</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConsultationType("online")}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${consultationType === "online" ? "border-teal-500 bg-teal-50 text-teal-700 shadow-md" : "border-slate-100 bg-white text-slate-400 hover:border-slate-200 hover:bg-slate-50"}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    <span className="font-bold text-sm">Online Video</span>
+                  </button>
                 </div>
               </div>
 
@@ -396,12 +453,12 @@ export default function BookAppointment() {
               <button
                 type="button"
                 onClick={handleBook}
-                disabled={!selectedDoctor || !date || processing} // Add processing disabled state
+                disabled={!selectedDoctor || (consultationType !== 'online' && !date) || processing} // Add processing disabled state
                 className={`w-full font-bold py-6 rounded-2xl transition-all transform hover:-translate-y-1 active:translate-y-0 active:scale-95 disabled:opacity-50 disabled:transform-none shadow-xl shadow-blue-200 text-xl
                   ${processing ? 'bg-slate-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 text-white'}
                 `}
               >
-                {processing ? "Processing..." : `Pay ${selectedDoctor?.consultation_fee || 50} & Book`}
+                {processing ? "Processing..." : `Pay ${selectedDoctor?.consultation_fee || 50} & ${consultationType === 'online' ? 'Request Consultation' : 'Book Now'}`}
               </button>
 
               <div className="text-center flex items-center justify-center gap-2 text-slate-400 text-xs font-medium pb-4">

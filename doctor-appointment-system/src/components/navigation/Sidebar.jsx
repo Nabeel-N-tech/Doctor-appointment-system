@@ -2,26 +2,38 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 
+import {
+  LayoutDashboard,
+  History,
+  FileText,
+  CalendarPlus,
+  CalendarDays,
+  Clock,
+  Users,
+  CalendarCheck,
+  ClipboardPen
+} from "lucide-react";
+
 const linksByRole = {
   patient: [
-    { label: "Dashboard", path: "/" },
-    { label: "History", path: "/history" },
-    { label: "Lab Reports", path: "/lab-reports" },
-    { label: "Book Appointment", path: "/book" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "History", path: "/history", icon: History },
+    { label: "Lab Reports", path: "/lab-reports", icon: FileText },
+    { label: "Book Appointment", path: "/book", icon: CalendarPlus },
   ],
   doctor: [
-    { label: "Dashboard", path: "/" },
-    { label: "Schedule", path: "/schedule" },
-    { label: "Availability", path: "/availability" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Schedule", path: "/schedule", icon: CalendarDays },
+    { label: "Availability", path: "/availability", icon: Clock },
   ],
   admin: [
-    { label: "Dashboard", path: "/" },
-    { label: "Manage Users", path: "/users" },
-    { label: "Appointments", path: "/appointments" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Manage Users", path: "/users", icon: Users },
+    { label: "Appointments", path: "/appointments", icon: CalendarCheck },
   ],
   staff: [
-    { label: "Dashboard", path: "/" },
-    { label: "Create Report", path: "/create-report" },
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Create Report", path: "/create-report", icon: ClipboardPen },
   ],
 };
 
@@ -92,7 +104,8 @@ export default function Sidebar({ isOpen, onClose }) {
                 `}
                 onClick={onClose}
               >
-                <span className="tracking-wide pl-1">{link.label}</span>
+                {link.icon && <link.icon className={`w-5 h-5 ${isActive ? 'text-teal-400' : 'text-slate-400 group-hover:text-teal-600'} transition-colors`} />}
+                <span className="tracking-wide">{link.label}</span>
                 {isActive && (
                   <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></div>
                 )}

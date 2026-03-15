@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import apiClient from "../../api/apiClient";
 
 // Simple Checkout Form
-function CheckoutForm({ onSuccess, onCancel }) {
+function CheckoutForm({ onSuccess, onCancel, appointmentId }) {
     const stripe = useStripe();
     const elements = useElements();
     const [message, setMessage] = useState(null);
@@ -28,19 +28,22 @@ function CheckoutForm({ onSuccess, onCancel }) {
             elements,
             confirmParams: {
                 // Return URL is required for some payment methods
-                return_url: window.location.origin,
+                return_url: `${window.location.origin}${window.location.pathname}?payment_success=true&appt_id=${appointmentId}`,
             },
             redirect: "if_required",
         });
 
         if (error) {
             setMessage(error.message);
+            toast.error(error.message);
             setLoading(false);
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
-            onSuccess();
+            // ✅ SECURITY FIX: Pass payment_intent_id to backend for verification
+            onSuccess(paymentIntent.id);
             setLoading(false);
         } else {
             setMessage("Payment status: " + paymentIntent.status);
+            toast.error("Payment incomplete. Please try again.");
             setLoading(false);
         }
     };
@@ -105,13 +108,21 @@ export default function StripePaymentModal({ appointmentId, onClose, onSuccess }
         });
     }, [appointmentId]);
 
-    const handleSuccess = async () => {
+    const handleSuccess = async (paymentIntentId) => {
         try {
-            await apiClient.post(`/appointments/${appointmentId}/pay/`);
-            toast.success("Payment Successful!");
-            onSuccess();
+            // ✅ SECURITY FIX: Send payment_intent_id to backend for verification
+            const response = await apiClient.post(`/appointments/${appointmentId}/pay/`, {
+                payment_intent_id: paymentIntentId
+            });
+            toast.success("Payment Verified! Appointment confirmed.");
+            onSuccess(response.data);
         } catch (e) {
-            toast.error("Error updating payment status.");
+            console.error("Payment verification error:", e);
+            if (e.response?.data?.error) {
+                toast.error(`Payment error: ${e.response.data.error}`);
+            } else {
+                toast.error("Error verifying payment. Please contact support.");
+            }
         }
     };
 
@@ -124,7 +135,7 @@ export default function StripePaymentModal({ appointmentId, onClose, onSuccess }
 
                 {clientSecret && stripePromise ? (
                     <Elements stripe={stripePromise} options={{ clientSecret }}>
-                        <CheckoutForm onSuccess={handleSuccess} onCancel={onClose} />
+                        <CheckoutForm onSuccess={handleSuccess} onCancel={onClose} appointmentId={appointmentId} />
                     </Elements>
                 ) : (
                     <div className="text-center py-8 text-gray-500">

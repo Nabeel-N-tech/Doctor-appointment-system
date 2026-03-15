@@ -5,6 +5,10 @@ import Button from "../../components/ui/Button";
 import { useAppointments } from "../../hooks/useAppointments";
 import { useAuth } from "../../auth/AuthContext";
 import { getLabReports } from "../../api/lab.api";
+import { fetchMedicalRecords } from "../../api/ehr.api";
+import EHRTimeline from "../../components/domain/EHRTimeline";
+import ConsultationContact from "../../components/domain/ConsultationContact";
+import { CalendarClock, History, FlaskConical, Video, CalendarPlus, ChevronRight, ActivitySquare } from "lucide-react";
 
 export default function PatientDashboard() {
   // Get the current logged-in user details
@@ -15,12 +19,19 @@ export default function PatientDashboard() {
 
   // State to keep track of how many lab reports exist
   const [reportCount, setReportCount] = useState(0);
+  const [medicalRecords, setMedicalRecords] = useState([]);
 
   // When the component loads (or user changes), fetch the lab reports
   useEffect(() => {
     getLabReports()
       .then(data => setReportCount(data.length))
       .catch(err => console.error(err));
+
+    if (user?.id) {
+      fetchMedicalRecords(user.id)
+        .then(setMedicalRecords)
+        .catch(err => console.error(err));
+    }
   }, [user]);
 
   // Filter the list to find only future visits that are confirmed or pending
@@ -50,8 +61,8 @@ export default function PatientDashboard() {
 
           <Link to="/book">
             <button className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-slate-800 transition-all flex items-center gap-2 group shadow-xl hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 active:translate-y-0">
+              <CalendarPlus size={18} />
               <span>Book Appointment</span>
-
             </button>
           </Link>
         </div>
@@ -60,38 +71,55 @@ export default function PatientDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link to="/history?filter=upcoming" className="group">
-          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]"></span>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Next Steps</p>
+          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden flex flex-col items-start">
+            <div className="flex items-center gap-3 mb-6 bg-teal-50 text-teal-600 px-4 py-2 rounded-2xl">
+              <CalendarClock size={20} />
+              <p className="text-xs font-bold uppercase tracking-widest">Next Steps</p>
             </div>
             <p className="text-6xl font-serif text-slate-800 mb-2 tracking-tight group-hover:scale-105 transition-transform origin-left">{upcomingAppointments.length}</p>
-            <p className="text-slate-500 font-medium text-sm">Upcoming Visits</p>
+            <p className="text-slate-500 font-medium text-sm mt-auto">Upcoming Visits</p>
           </div>
         </Link>
 
         <Link to="/history" className="group">
-          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">History</p>
+          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden flex flex-col items-start">
+            <div className="flex items-center gap-3 mb-6 bg-blue-50 text-blue-600 px-4 py-2 rounded-2xl">
+              <History size={20} />
+              <p className="text-xs font-bold uppercase tracking-widest">History</p>
             </div>
             <p className="text-6xl font-serif text-slate-800 mb-2 tracking-tight group-hover:scale-105 transition-transform origin-left">{appointments.length}</p>
-            <p className="text-slate-500 font-medium text-sm">Total Consultations</p>
+            <p className="text-slate-500 font-medium text-sm mt-auto">Total Consultations</p>
           </div>
         </Link>
 
         <Link to="/lab-reports" className="group">
-          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></span>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Lab Results</p>
+          <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-1 h-full relative overflow-hidden flex flex-col items-start">
+            <div className="flex items-center gap-3 mb-6 bg-purple-50 text-purple-600 px-4 py-2 rounded-2xl">
+              <FlaskConical size={20} />
+              <p className="text-xs font-bold uppercase tracking-widest">Lab Results</p>
             </div>
             <p className="text-6xl font-serif text-slate-800 mb-2 tracking-tight group-hover:scale-105 transition-transform origin-left">{reportCount}</p>
-            <p className="text-slate-500 font-medium text-sm">Reports Available</p>
+            <p className="text-slate-500 font-medium text-sm mt-auto">Reports Available</p>
           </div>
         </Link>
       </div>
+
+      {/* Medical History (EHR) */}
+      <div>
+        <div className="flex justify-between items-end mb-8 px-2">
+          <div>
+            <h2 className="text-3xl font-serif text-slate-800">Medical Records</h2>
+            <p className="text-slate-400 text-sm font-medium mt-1">Your continuous health timeline</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100">
+          <EHRTimeline records={medicalRecords} />
+        </div>
+      </div>
+
+      {/* WhatsApp & Call Consultation Section */}
+      <ConsultationContact />
 
       {/* Recent Activity */}
       <div>
@@ -135,8 +163,13 @@ export default function PatientDashboard() {
                            `}>
                     {a.status === 'cancelled' ? 'Declined' : a.status}
                   </span>
-                  <Link to={`/history`} className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 hover:bg-slate-50 hover:text-slate-600 transition-all">
-
+                  {(a.status === 'confirmed' || a.status === 'in_progress') && (
+                    <Link to={`/video-call/${a.id}`} className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border border-rose-100">
+                      <Video size={16} /> <span className="hidden sm:inline">Join</span> Call
+                    </Link>
+                  )}
+                  <Link to={`/history`} className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 hover:bg-slate-50 hover:text-slate-600 transition-all group-hover:bg-slate-900 group-hover:text-white">
+                    <ChevronRight size={20} />
                   </Link>
                 </div>
 

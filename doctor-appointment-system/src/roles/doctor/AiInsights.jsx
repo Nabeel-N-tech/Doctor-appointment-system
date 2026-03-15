@@ -194,7 +194,7 @@ export default function AiInsights() {
                             <div>
                                 <h4 className="font-black text-slate-400 uppercase tracking-widest text-xs mb-4">Patient Demographics (Age)</h4>
                                 <div className="h-48 w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                         <BarChart data={insightData.ageChartData}>
                                             <XAxis
                                                 dataKey="name"

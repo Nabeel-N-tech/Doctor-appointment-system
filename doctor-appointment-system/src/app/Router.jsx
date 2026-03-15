@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
+import Landing from "../pages/Landing";
 
 // Layout
 import Layout from "../components/layout/Layout";
@@ -14,8 +15,10 @@ import BookAppointment from "../roles/patient/BookAppointment";
 import AppointmentHistory from "../roles/patient/AppointmentHistory";
 import LabReports from "../roles/patient/LabReports";
 import Profile from "../pages/Profile";
-
 import AiInsights from "../roles/doctor/AiInsights";
+
+// Video Call
+import VideoCall from "../pages/VideoCall";
 
 // Doctor
 import DoctorDashboard from "../roles/doctor/DoctorDashboard";
@@ -50,10 +53,11 @@ export default function Router() {
   if (user === null) {
     return (
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
@@ -82,6 +86,7 @@ export default function Router() {
   if (user.role && user.role.trim().toLowerCase() === "doctor") {
     return (
       <Routes>
+        <Route path="/video-call/:appointmentId" element={<VideoCall />} />
         <Route element={<Layout />}>
           <Route path="/" element={<DoctorDashboard />} />
           <Route path="/schedule" element={<Schedule />} />
@@ -113,6 +118,7 @@ export default function Router() {
   // 🧑‍⚕️ Patient routes (default)
   return (
     <Routes>
+      <Route path="/video-call/:appointmentId" element={<VideoCall />} />
       <Route element={<Layout />}>
         <Route path="/" element={<PatientDashboard />} />
         <Route path="/book" element={<BookAppointment />} />

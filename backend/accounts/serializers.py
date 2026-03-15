@@ -68,7 +68,7 @@ class RegisterSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "role", "specialization", "phone_number", "address", "age", "gender", "blood_group", "medical_history", "is_available", "consultation_fee"]
+        fields = ["id", "username", "email", "role", "specialization", "phone_number", "address", "age", "gender", "blood_group", "medical_history", "is_available", "consultation_fee", "profile_picture"]
 
 from .models import LabReport
 class LabReportSerializer(serializers.ModelSerializer):
@@ -101,4 +101,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ["id", "patient", "patient_id", "doctor", "doctor_id", "doctor_fee", "date", "status", "reason", "diagnosis", "token_number", "payment_status", "vitals", "decline_reason"]
+        fields = ["id", "patient", "patient_id", "doctor", "doctor_id", "doctor_fee", "date", "status", "reason", "diagnosis", "token_number", "payment_status", "vitals", "decline_reason", "consultation_type"]
+
+from .models import MedicalRecord
+class MedicalRecordSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source="patient.username", read_only=True)
+    doctor_name = serializers.CharField(source="doctor.username", read_only=True)
+    
+    class Meta:
+        model = MedicalRecord
+        fields = ["id", "patient", "patient_name", "doctor", "doctor_name", "appointment", "notes", "diagnosis", "treatment_plan", "date"]

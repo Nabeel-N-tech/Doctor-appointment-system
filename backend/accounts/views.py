@@ -9,9 +9,13 @@ from django.core.mail import send_mail
 import random
 import stripe
 from django.conf import settings
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
+import logging
+
+# ✅ IMPROVED: Use proper logging instead of print()
+logger = logging.getLogger(__name__)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -351,13 +355,15 @@ def create_appointment(request):
         date=data.get("date"),
         reason=data.get("reason"),
         status="pending",
-        token_number=token
+        token_number=token,
+        consultation_type=data.get("consultation_type", "normal")
     )
 
     # Notify Doctor
+    cons_type_str = "Online" if appointment.consultation_type == "online" else "Normal"
     Notification.objects.create(
         recipient=doctor,
-        message=f"New appointment request from {request.user.username} for {data.get('date')}."
+        message=f"New {cons_type_str.lower()} request from {request.user.username} for {data.get('date')}."
     )
 
     # Notify Admins
@@ -507,8 +513,8 @@ def update_appointment_status(request, pk):
             message=msg
         )
 
-        # Notify Patient via Email
-        if appointment.patient.email:
+        # Notify Patient via Email, SMS, and WhatsApp
+        if appointment.patient:
             try:
                 subject = f"Appointment Update: {status.title()}"
                 
@@ -518,17 +524,34 @@ def update_appointment_status(request, pk):
                 if status == 'cancelled' and appointment.decline_reason:
                     email_body += f"\nReason for cancellation: {appointment.decline_reason}\n"
                 
+                if status == 'confirmed' and appointment.consultation_type == 'online':
+                    email_body += "\nThis is a confirmed ONLINE consultation. Please log in to join the video call at the scheduled time.\n"
+                
                 email_body += "\nPlease check your dashboard for more details.\n\nBest regards,\nHospital Team"
                 
-                send_mail(
-                    subject,
-                    email_body,
-                    'noreply@hospital.com',
-                    [appointment.patient.email],
-                    fail_silently=True,
-                )
+                if appointment.patient.email:
+                    send_mail(
+                        subject,
+                        email_body,
+                        'noreply@hospital.com',
+                        [appointment.patient.email],
+                        fail_silently=True,
+                    )
+                
+                if status in ['confirmed', 'cancelled'] and appointment.patient.phone_number:
+                    # Simulate sending SMS & WhatsApp messages
+                    print('='*50)
+                    action = "CONFIRMED" if status == "confirmed" else "DECLINED"
+                    print(f"--> SMS SENT TO: {appointment.patient.phone_number}")
+                    print(f"Message: {subject} - Your appointment with Dr. {appointment.doctor.username} is {action.lower()}.")
+                    print(f"--> WHATSAPP SENT TO: {appointment.patient.phone_number}")
+                    msg_wa = f"Hello {appointment.patient.username}, your appointment ({appointment.consultation_type}) with Dr. {appointment.doctor.username} on {appointment.date} is {action}."
+                    if status == "cancelled" and appointment.decline_reason:
+                        msg_wa += f" Reason: {appointment.decline_reason}"
+                    print(f"Message: {msg_wa}")
+                    print('='*50)
             except Exception as e:
-                print(f"Failed to send email: {e}")
+                print(f"Failed to send notifications: {e}")
 
         # Notify Doctor on Check In
         if status == 'confirmed':
@@ -693,25 +716,96 @@ def get_stripe_config(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def pay_appointment(request, pk):
-    print(f"DEBUG: pay_appointment request for ID {pk} from user {request.user.username}")
+    """
+    ✅ SECURITY FIX: Verify payment with Stripe before marking appointment as paid
+    This prevents clients from falsely claiming payment without actual transaction
+    """
     try:
         appointment = Appointment.objects.get(pk=pk)
         if request.user != appointment.patient:
-             return Response({"error": "Unauthorized"}, status=403)
-        
-        # In a real production app, you would verify the specific PaymentIntent status here
-        # For this prototype, we trust the client call after Stripe success
-        
-        # Use update to force specific field write at DB level
-        Appointment.objects.filter(pk=pk).update(payment_status='paid')
-        
-        # Verify update
-        app_refresh = Appointment.objects.get(pk=pk)
-        print(f"DEBUG: Updated appointment {pk} payment_status to: {app_refresh.payment_status}")
-        
-        return Response({"message": "Payment successful", "appointment_id": appointment.id, "payment_status": "paid"})
+            return Response({"error": "Unauthorized"}, status=403)
+
+        # ✅ REQUIRED: Client must provide Stripe PaymentIntent ID
+        payment_intent_id = request.data.get('payment_intent_id')
+        if not payment_intent_id:
+            return Response({
+                "error": "Payment intent ID required. Verify payment with Stripe first."
+            }, status=400)
+
+        # ✅ VERIFY payment with Stripe servers (not client)
+        try:
+            intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+
+            # ✅ Check payment was successful
+            if intent.status != 'succeeded':
+                return Response({
+                    "error": f"Payment not successful. Status: {intent.status}",
+                    "details": "Please complete payment and try again"
+                }, status=400)
+
+            # ✅ Verify amount matches appointment fee (prevent tampering)
+            expected_amount = int(appointment.doctor.consultation_fee * 100)
+            if intent.amount != expected_amount:
+                return Response({
+                    "error": "Payment amount does not match appointment fee",
+                    "details": "Contact support if this is a billing error"
+                }, status=400)
+
+            # ✅ Verify metadata matches
+            if intent.metadata.get('appointment_id') != str(appointment.id):
+                return Response({
+                    "error": "Payment intent does not match this appointment",
+                    "details": "Please retry payment for correct appointment"
+                }, status=400)
+
+            # ✅ Idempotency check: don't double-charge
+            if appointment.payment_status == 'paid':
+                return Response({
+                    "message": "Appointment already paid",
+                    "appointment_id": appointment.id,
+                    "payment_status": "paid"
+                }, status=200)
+
+            # ✅ All checks passed - mark as paid
+            appointment.payment_status = 'paid'
+            appointment.status = 'confirmed'  # Auto-confirm after payment
+            appointment.save()
+
+            # ✅ Notify doctor of confirmed appointment
+            Notification.objects.create(
+                recipient=appointment.doctor,
+                message=f"Appointment with {appointment.patient.username} (Token #{appointment.token_number}) has been confirmed and paid."
+            )
+
+            return Response({
+                "message": "Payment verified and appointment confirmed",
+                "appointment_id": appointment.id,
+                "payment_status": "paid",
+                "status": "confirmed"
+            }, status=200)
+
+        except stripe.error.InvalidRequestError as e:
+            return Response({
+                "error": "Invalid payment intent",
+                "details": "The payment intent ID is invalid or expired"
+            }, status=400)
+        except stripe.error.AuthenticationError:
+            return Response({
+                "error": "Stripe authentication failed",
+                "details": "Payment service is temporarily unavailable"
+            }, status=503)
+
     except Appointment.DoesNotExist:
         return Response({"error": "Appointment not found"}, status=404)
+    except Exception as e:
+        # Log error but don't expose internal details
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Payment verification error: {str(e)}", exc_info=True)
+        return Response({
+            "error": "Payment processing error",
+            "details": "Please contact support"
+        }, status=500)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -889,4 +983,125 @@ def ai_insights(request):
         'clinical': {
             'top_symptoms': symptom_stats
         }
+    })
+
+from .models import MedicalRecord
+from .serializers import MedicalRecordSerializer
+from django.db.models import Sum
+from django.db.models.functions import TruncMonth
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_medical_records(request, patient_id):
+    if request.user.role not in ['admin', 'doctor', 'patient']:
+        return Response({"error": "Unauthorized"}, status=403)
+    
+    if request.user.role == 'patient' and request.user.id != patient_id:
+        return Response({"error": "Unauthorized"}, status=403)
+        
+    records = MedicalRecord.objects.filter(patient_id=patient_id).order_by('-date')
+    return Response(MedicalRecordSerializer(records, many=True).data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_medical_record(request):
+    if request.user.role != "doctor":
+        return Response({"error": "Only doctors can create medical records"}, status=403)
+        
+    data = request.data
+    patient_id = data.get("patient_id")
+    
+    if not patient_id:
+        return Response({"error": "Patient is required"}, status=400)
+        
+    try:
+        patient = User.objects.get(id=patient_id, role="patient")
+        appointment_id = data.get("appointment_id")
+        appointment = None
+        if appointment_id:
+            try:
+                 appointment = Appointment.objects.get(id=appointment_id)
+            except Appointment.DoesNotExist:
+                 pass
+                 
+        record = MedicalRecord.objects.create(
+            doctor=request.user,
+            patient=patient,
+            appointment=appointment,
+            notes=data.get("notes", ""),
+            diagnosis=data.get("diagnosis", ""),
+            treatment_plan=data.get("treatment_plan", "")
+        )
+        return Response(MedicalRecordSerializer(record).data, status=201)
+    except User.DoesNotExist:
+        return Response({"error": "Patient not found"}, status=404)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_analytics(request):
+    if request.user.role != 'admin':
+         return Response({"error": "Unauthorized"}, status=403)
+         
+    # Patient Demographics
+    patients = User.objects.filter(role='patient')
+    gender_dist = list(patients.values('gender').annotate(count=Count('gender')))
+    
+    age_buckets = patients.aggregate(
+        age_0_18=Count('id', filter=Q(age__lte=18)),
+        age_19_35=Count('id', filter=Q(age__gt=18, age__lte=35)),
+        age_36_50=Count('id', filter=Q(age__gt=35, age__lte=50)),
+        age_51_65=Count('id', filter=Q(age__gt=50, age__lte=65)),
+        age_65_plus=Count('id', filter=Q(age__gt=65))
+    )
+    
+    age_dist = [
+        {"name": "0-18", "value": age_buckets['age_0_18']},
+        {"name": "19-35", "value": age_buckets['age_19_35']},
+        {"name": "36-50", "value": age_buckets['age_36_50']},
+        {"name": "51-65", "value": age_buckets['age_51_65']},
+        {"name": "65+", "value": age_buckets['age_65_plus']},
+    ]
+
+    six_months_ago = timezone.now() - timedelta(days=180)
+    paid_appts = Appointment.objects.filter(payment_status='paid', date__gte=six_months_ago)
+    
+    monthly_revenue = list(paid_appts.annotate(month=TruncMonth('date'))
+                                     .values('month')
+                                     .annotate(revenue=Sum('doctor__consultation_fee'))
+                                     .order_by('month'))
+                                     
+    revenue_data = [{"month": item['month'].strftime('%b %Y') if item['month'] else "Unknown", "revenue": float(item['revenue'] or 0)} for item in monthly_revenue]
+
+    all_appts = Appointment.objects.filter(date__gte=six_months_ago)
+    status_stats = list(all_appts.values('status').annotate(count=Count('status')))
+    status_data = [{"status": item['status'], "count": item['count']} for item in status_stats]
+    
+    return Response({
+        "revenue_trends": revenue_data,
+        "demographics_age": age_dist,
+        "demographics_gender": [{"name": item['gender'] or 'Unknown', "value": item['count']} for item in gender_dist],
+        "appointment_status": status_data
+    })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def doctor_analytics(request):
+    if request.user.role != 'doctor':
+         return Response({"error": "Unauthorized"}, status=403)
+         
+    doctor = request.user
+    today = timezone.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    
+    appts_this_week = Appointment.objects.filter(doctor=doctor, date__gte=start_of_week)
+    
+    paid_this_week = appts_this_week.filter(payment_status='paid')
+    revenue_this_week = float(paid_this_week.aggregate(total=Sum('doctor__consultation_fee'))['total'] or 0)
+    
+    status_stats = list(appts_this_week.values('status').annotate(count=Count('status')))
+    
+    return Response({
+         "total_appointments_this_week": appts_this_week.count(),
+         "revenue_this_week": revenue_this_week,
+         "appointment_status": [{"status": item['status'], "count": item['count']} for item in status_stats]
     })

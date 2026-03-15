@@ -10,7 +10,7 @@ from .views import (
     create_payment_intent, get_stripe_config,
     get_lab_reports, create_lab_report, create_referral, toggle_availability,
     create_prescription, get_prescriptions, dispense_prescription,
-    ai_insights
+    ai_insights, get_medical_records, create_medical_record, admin_analytics, doctor_analytics
 )
 
 urlpatterns = [
@@ -41,4 +41,8 @@ urlpatterns = [
     path("prescriptions/", get_prescriptions),
     path("prescriptions/create/", create_prescription),
     path("prescriptions/<int:pk>/dispense/", dispense_prescription),
+    path("medical-records/<int:patient_id>/", get_medical_records),
+    path("medical-records/create/", create_medical_record),
+    path("analytics/admin/", admin_analytics),
+    path("analytics/doctor/", doctor_analytics),
 ]
